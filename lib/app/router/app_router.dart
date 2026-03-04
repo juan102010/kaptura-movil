@@ -8,6 +8,8 @@ import '../../features/home/presentation/pages/home_page.dart';
 import '../../features/auth/presentation/state/auth_controller.dart';
 import '../../features/auth/presentation/state/auth_state.dart';
 import '../../features/settings/presentation/pages/settings_page.dart';
+import '../../features/work_orders/presentation/pages/work_order_details_page.dart';
+import '../../features/work_orders/presentation/pages/work_orders_page.dart';
 
 /// Placeholders temporales
 class WorkOrdersPlaceholderPage extends StatelessWidget {
@@ -163,7 +165,16 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             routes: [
               GoRoute(
                 path: '/work-orders',
-                builder: (context, state) => const WorkOrdersPlaceholderPage(),
+                builder: (context, state) => const WorkOrdersPage(),
+                routes: [
+                  GoRoute(
+                    path: ':id',
+                    builder: (context, state) {
+                      final id = state.pathParameters['id'] ?? '';
+                      return WorkOrderDetailsPage(workOrderId: id);
+                    },
+                  ),
+                ],
               ),
             ],
           ),

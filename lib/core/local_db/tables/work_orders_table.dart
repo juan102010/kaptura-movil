@@ -10,6 +10,13 @@ class WorkOrdersTable extends Table {
   // Normalizado a JSON string: ["userId1","userId2"]
   TextColumn get assignedIdsJson => text().withDefault(const Constant('[]'))();
 
+  // ✅ NUEVO: objeto completo (JSON string)
+  TextColumn get rawJson => text().withDefault(const Constant('{}'))();
+
+  // ✅ NUEVO (recomendado): fechas para filtrar "hoy" sin decodificar JSON
+  DateTimeColumn get startAt => dateTime().nullable()();
+  DateTimeColumn get endAt => dateTime().nullable()();
+
   // Para control de cache (opcional pero recomendado)
   DateTimeColumn get cachedAt => dateTime().withDefault(currentDateAndTime)();
 

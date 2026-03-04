@@ -25,7 +25,8 @@ class HomeLocalDataSourceImpl implements HomeLocalDataSource {
         _db.workOrdersTable,
         rawWorkOrders
             .map((e) {
-              final id = (e['_id'] ?? '').toString();
+              final id = (e['_id'] ?? '').toString().trim();
+              if (id.isEmpty) return null;
 
               // text_nameWorkOrder_id
               final name = (e['text_nameWorkOrder_id'] ?? '').toString();
@@ -34,14 +35,24 @@ class HomeLocalDataSourceImpl implements HomeLocalDataSource {
               final assigned = e['text_assigned_id'];
               final assignedList = _normalizeAssignedIds(assigned);
 
+              // ✅ NUEVO: guardar TODO el objeto como JSON
+              final rawJson = _safeEncodeMap(e);
+
+              // ✅ NUEVO: fechas (para filtro "hoy")
+              final startAt = _parseIsoDateTime(e['date_start_id']);
+              final endAt = _parseIsoDateTime(e['date_end_id']);
+
               return WorkOrdersTableCompanion(
                 id: Value(id),
                 name: Value(name),
                 assignedIdsJson: Value(jsonEncode(assignedList)),
-                // cachedAt lo dejamos que lo ponga el default de la DB
+                rawJson: Value(rawJson),
+                startAt: Value(startAt),
+                endAt: Value(endAt),
+                // cachedAt lo dejamos al default de la DB
               );
             })
-            .where((row) => row.id.value.isNotEmpty)
+            .whereType<WorkOrdersTableCompanion>()
             .toList(),
       );
     });
@@ -51,16 +62,31 @@ class HomeLocalDataSourceImpl implements HomeLocalDataSource {
   Future<List<Map<String, dynamic>>> getWorkOrdersCacheRaw() async {
     final rows = await _db.select(_db.workOrdersTable).get();
 
-    // devolvemos algo parecido a tu API (raw) para que sea fácil integrar luego
     return rows.map((r) {
-      final assignedList = _safeDecodeList(r.assignedIdsJson);
+      // ✅ Preferimos el objeto completo desde rawJson
+      final map = _safeDecodeMap(r.rawJson);
 
-      return <String, dynamic>{
-        '_id': r.id,
-        'text_nameWorkOrder_id': r.name,
-        'text_assigned_id': assignedList,
-        'cachedAt': r.cachedAt.toIso8601String(),
-      };
+      // Aseguramos que tenga _id (por si el JSON estaba vacío por alguna razón)
+      map['_id'] ??= r.id;
+
+      // Opcional: asegurar algunos campos mínimos coherentes
+      map['text_nameWorkOrder_id'] ??= r.name;
+
+      // Si quieres seguir garantizando assigned como List, lo inyectamos
+      map['text_assigned_id'] ??= _safeDecodeList(r.assignedIdsJson);
+
+      // Metadata local útil (no rompe backend)
+      map['cachedAt'] = r.cachedAt.toIso8601String();
+
+      // También podemos exponer start/end ya parseados (útil en UI)
+      if (r.startAt != null) {
+        map['__local_startAt'] = r.startAt!.toIso8601String();
+      }
+      if (r.endAt != null) {
+        map['__local_endAt'] = r.endAt!.toIso8601String();
+      }
+
+      return map;
     }).toList();
   }
 
@@ -90,6 +116,40 @@ class HomeLocalDataSourceImpl implements HomeLocalDataSource {
     }
 
     return <String>[];
+  }
+
+  DateTime? _parseIsoDateTime(dynamic value) {
+    if (value == null) return null;
+
+    final s = value.toString().trim();
+    if (s.isEmpty) return null;
+
+    // Backend te manda ISO con Z: 2025-11-19T11:00:00.000Z
+    // DateTime.parse lo soporta.
+    try {
+      return DateTime.parse(s);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  String _safeEncodeMap(Map<String, dynamic> map) {
+    try {
+      return jsonEncode(map);
+    } catch (_) {
+      // si algo raro no es encodable, evitamos romper el cache
+      return '{}';
+    }
+  }
+
+  Map<String, dynamic> _safeDecodeMap(String jsonStr) {
+    try {
+      final decoded = jsonDecode(jsonStr);
+      if (decoded is Map) return decoded.cast<String, dynamic>();
+      return <String, dynamic>{};
+    } catch (_) {
+      return <String, dynamic>{};
+    }
   }
 
   List<String> _safeDecodeList(String jsonStr) {

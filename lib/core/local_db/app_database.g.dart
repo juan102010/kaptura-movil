@@ -40,6 +40,38 @@ class $WorkOrdersTableTable extends WorkOrdersTable
     requiredDuringInsert: false,
     defaultValue: const Constant('[]'),
   );
+  static const VerificationMeta _rawJsonMeta = const VerificationMeta(
+    'rawJson',
+  );
+  @override
+  late final GeneratedColumn<String> rawJson = GeneratedColumn<String>(
+    'raw_json',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('{}'),
+  );
+  static const VerificationMeta _startAtMeta = const VerificationMeta(
+    'startAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> startAt = GeneratedColumn<DateTime>(
+    'start_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _endAtMeta = const VerificationMeta('endAt');
+  @override
+  late final GeneratedColumn<DateTime> endAt = GeneratedColumn<DateTime>(
+    'end_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _cachedAtMeta = const VerificationMeta(
     'cachedAt',
   );
@@ -53,7 +85,15 @@ class $WorkOrdersTableTable extends WorkOrdersTable
     defaultValue: currentDateAndTime,
   );
   @override
-  List<GeneratedColumn> get $columns => [id, name, assignedIdsJson, cachedAt];
+  List<GeneratedColumn> get $columns => [
+    id,
+    name,
+    assignedIdsJson,
+    rawJson,
+    startAt,
+    endAt,
+    cachedAt,
+  ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -86,6 +126,24 @@ class $WorkOrdersTableTable extends WorkOrdersTable
         ),
       );
     }
+    if (data.containsKey('raw_json')) {
+      context.handle(
+        _rawJsonMeta,
+        rawJson.isAcceptableOrUnknown(data['raw_json']!, _rawJsonMeta),
+      );
+    }
+    if (data.containsKey('start_at')) {
+      context.handle(
+        _startAtMeta,
+        startAt.isAcceptableOrUnknown(data['start_at']!, _startAtMeta),
+      );
+    }
+    if (data.containsKey('end_at')) {
+      context.handle(
+        _endAtMeta,
+        endAt.isAcceptableOrUnknown(data['end_at']!, _endAtMeta),
+      );
+    }
     if (data.containsKey('cached_at')) {
       context.handle(
         _cachedAtMeta,
@@ -113,6 +171,18 @@ class $WorkOrdersTableTable extends WorkOrdersTable
         DriftSqlType.string,
         data['${effectivePrefix}assigned_ids_json'],
       )!,
+      rawJson: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}raw_json'],
+      )!,
+      startAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}start_at'],
+      ),
+      endAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}end_at'],
+      ),
       cachedAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}cached_at'],
@@ -131,11 +201,17 @@ class WorkOrdersTableData extends DataClass
   final String id;
   final String name;
   final String assignedIdsJson;
+  final String rawJson;
+  final DateTime? startAt;
+  final DateTime? endAt;
   final DateTime cachedAt;
   const WorkOrdersTableData({
     required this.id,
     required this.name,
     required this.assignedIdsJson,
+    required this.rawJson,
+    this.startAt,
+    this.endAt,
     required this.cachedAt,
   });
   @override
@@ -144,6 +220,13 @@ class WorkOrdersTableData extends DataClass
     map['id'] = Variable<String>(id);
     map['name'] = Variable<String>(name);
     map['assigned_ids_json'] = Variable<String>(assignedIdsJson);
+    map['raw_json'] = Variable<String>(rawJson);
+    if (!nullToAbsent || startAt != null) {
+      map['start_at'] = Variable<DateTime>(startAt);
+    }
+    if (!nullToAbsent || endAt != null) {
+      map['end_at'] = Variable<DateTime>(endAt);
+    }
     map['cached_at'] = Variable<DateTime>(cachedAt);
     return map;
   }
@@ -153,6 +236,13 @@ class WorkOrdersTableData extends DataClass
       id: Value(id),
       name: Value(name),
       assignedIdsJson: Value(assignedIdsJson),
+      rawJson: Value(rawJson),
+      startAt: startAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(startAt),
+      endAt: endAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(endAt),
       cachedAt: Value(cachedAt),
     );
   }
@@ -166,6 +256,9 @@ class WorkOrdersTableData extends DataClass
       id: serializer.fromJson<String>(json['id']),
       name: serializer.fromJson<String>(json['name']),
       assignedIdsJson: serializer.fromJson<String>(json['assignedIdsJson']),
+      rawJson: serializer.fromJson<String>(json['rawJson']),
+      startAt: serializer.fromJson<DateTime?>(json['startAt']),
+      endAt: serializer.fromJson<DateTime?>(json['endAt']),
       cachedAt: serializer.fromJson<DateTime>(json['cachedAt']),
     );
   }
@@ -176,6 +269,9 @@ class WorkOrdersTableData extends DataClass
       'id': serializer.toJson<String>(id),
       'name': serializer.toJson<String>(name),
       'assignedIdsJson': serializer.toJson<String>(assignedIdsJson),
+      'rawJson': serializer.toJson<String>(rawJson),
+      'startAt': serializer.toJson<DateTime?>(startAt),
+      'endAt': serializer.toJson<DateTime?>(endAt),
       'cachedAt': serializer.toJson<DateTime>(cachedAt),
     };
   }
@@ -184,11 +280,17 @@ class WorkOrdersTableData extends DataClass
     String? id,
     String? name,
     String? assignedIdsJson,
+    String? rawJson,
+    Value<DateTime?> startAt = const Value.absent(),
+    Value<DateTime?> endAt = const Value.absent(),
     DateTime? cachedAt,
   }) => WorkOrdersTableData(
     id: id ?? this.id,
     name: name ?? this.name,
     assignedIdsJson: assignedIdsJson ?? this.assignedIdsJson,
+    rawJson: rawJson ?? this.rawJson,
+    startAt: startAt.present ? startAt.value : this.startAt,
+    endAt: endAt.present ? endAt.value : this.endAt,
     cachedAt: cachedAt ?? this.cachedAt,
   );
   WorkOrdersTableData copyWithCompanion(WorkOrdersTableCompanion data) {
@@ -198,6 +300,9 @@ class WorkOrdersTableData extends DataClass
       assignedIdsJson: data.assignedIdsJson.present
           ? data.assignedIdsJson.value
           : this.assignedIdsJson,
+      rawJson: data.rawJson.present ? data.rawJson.value : this.rawJson,
+      startAt: data.startAt.present ? data.startAt.value : this.startAt,
+      endAt: data.endAt.present ? data.endAt.value : this.endAt,
       cachedAt: data.cachedAt.present ? data.cachedAt.value : this.cachedAt,
     );
   }
@@ -208,13 +313,17 @@ class WorkOrdersTableData extends DataClass
           ..write('id: $id, ')
           ..write('name: $name, ')
           ..write('assignedIdsJson: $assignedIdsJson, ')
+          ..write('rawJson: $rawJson, ')
+          ..write('startAt: $startAt, ')
+          ..write('endAt: $endAt, ')
           ..write('cachedAt: $cachedAt')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, name, assignedIdsJson, cachedAt);
+  int get hashCode =>
+      Object.hash(id, name, assignedIdsJson, rawJson, startAt, endAt, cachedAt);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -222,6 +331,9 @@ class WorkOrdersTableData extends DataClass
           other.id == this.id &&
           other.name == this.name &&
           other.assignedIdsJson == this.assignedIdsJson &&
+          other.rawJson == this.rawJson &&
+          other.startAt == this.startAt &&
+          other.endAt == this.endAt &&
           other.cachedAt == this.cachedAt);
 }
 
@@ -229,12 +341,18 @@ class WorkOrdersTableCompanion extends UpdateCompanion<WorkOrdersTableData> {
   final Value<String> id;
   final Value<String> name;
   final Value<String> assignedIdsJson;
+  final Value<String> rawJson;
+  final Value<DateTime?> startAt;
+  final Value<DateTime?> endAt;
   final Value<DateTime> cachedAt;
   final Value<int> rowid;
   const WorkOrdersTableCompanion({
     this.id = const Value.absent(),
     this.name = const Value.absent(),
     this.assignedIdsJson = const Value.absent(),
+    this.rawJson = const Value.absent(),
+    this.startAt = const Value.absent(),
+    this.endAt = const Value.absent(),
     this.cachedAt = const Value.absent(),
     this.rowid = const Value.absent(),
   });
@@ -242,6 +360,9 @@ class WorkOrdersTableCompanion extends UpdateCompanion<WorkOrdersTableData> {
     required String id,
     this.name = const Value.absent(),
     this.assignedIdsJson = const Value.absent(),
+    this.rawJson = const Value.absent(),
+    this.startAt = const Value.absent(),
+    this.endAt = const Value.absent(),
     this.cachedAt = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id);
@@ -249,6 +370,9 @@ class WorkOrdersTableCompanion extends UpdateCompanion<WorkOrdersTableData> {
     Expression<String>? id,
     Expression<String>? name,
     Expression<String>? assignedIdsJson,
+    Expression<String>? rawJson,
+    Expression<DateTime>? startAt,
+    Expression<DateTime>? endAt,
     Expression<DateTime>? cachedAt,
     Expression<int>? rowid,
   }) {
@@ -256,6 +380,9 @@ class WorkOrdersTableCompanion extends UpdateCompanion<WorkOrdersTableData> {
       if (id != null) 'id': id,
       if (name != null) 'name': name,
       if (assignedIdsJson != null) 'assigned_ids_json': assignedIdsJson,
+      if (rawJson != null) 'raw_json': rawJson,
+      if (startAt != null) 'start_at': startAt,
+      if (endAt != null) 'end_at': endAt,
       if (cachedAt != null) 'cached_at': cachedAt,
       if (rowid != null) 'rowid': rowid,
     });
@@ -265,6 +392,9 @@ class WorkOrdersTableCompanion extends UpdateCompanion<WorkOrdersTableData> {
     Value<String>? id,
     Value<String>? name,
     Value<String>? assignedIdsJson,
+    Value<String>? rawJson,
+    Value<DateTime?>? startAt,
+    Value<DateTime?>? endAt,
     Value<DateTime>? cachedAt,
     Value<int>? rowid,
   }) {
@@ -272,6 +402,9 @@ class WorkOrdersTableCompanion extends UpdateCompanion<WorkOrdersTableData> {
       id: id ?? this.id,
       name: name ?? this.name,
       assignedIdsJson: assignedIdsJson ?? this.assignedIdsJson,
+      rawJson: rawJson ?? this.rawJson,
+      startAt: startAt ?? this.startAt,
+      endAt: endAt ?? this.endAt,
       cachedAt: cachedAt ?? this.cachedAt,
       rowid: rowid ?? this.rowid,
     );
@@ -289,6 +422,15 @@ class WorkOrdersTableCompanion extends UpdateCompanion<WorkOrdersTableData> {
     if (assignedIdsJson.present) {
       map['assigned_ids_json'] = Variable<String>(assignedIdsJson.value);
     }
+    if (rawJson.present) {
+      map['raw_json'] = Variable<String>(rawJson.value);
+    }
+    if (startAt.present) {
+      map['start_at'] = Variable<DateTime>(startAt.value);
+    }
+    if (endAt.present) {
+      map['end_at'] = Variable<DateTime>(endAt.value);
+    }
     if (cachedAt.present) {
       map['cached_at'] = Variable<DateTime>(cachedAt.value);
     }
@@ -304,6 +446,9 @@ class WorkOrdersTableCompanion extends UpdateCompanion<WorkOrdersTableData> {
           ..write('id: $id, ')
           ..write('name: $name, ')
           ..write('assignedIdsJson: $assignedIdsJson, ')
+          ..write('rawJson: $rawJson, ')
+          ..write('startAt: $startAt, ')
+          ..write('endAt: $endAt, ')
           ..write('cachedAt: $cachedAt, ')
           ..write('rowid: $rowid')
           ..write(')'))
@@ -329,6 +474,9 @@ typedef $$WorkOrdersTableTableCreateCompanionBuilder =
       required String id,
       Value<String> name,
       Value<String> assignedIdsJson,
+      Value<String> rawJson,
+      Value<DateTime?> startAt,
+      Value<DateTime?> endAt,
       Value<DateTime> cachedAt,
       Value<int> rowid,
     });
@@ -337,6 +485,9 @@ typedef $$WorkOrdersTableTableUpdateCompanionBuilder =
       Value<String> id,
       Value<String> name,
       Value<String> assignedIdsJson,
+      Value<String> rawJson,
+      Value<DateTime?> startAt,
+      Value<DateTime?> endAt,
       Value<DateTime> cachedAt,
       Value<int> rowid,
     });
@@ -362,6 +513,21 @@ class $$WorkOrdersTableTableFilterComposer
 
   ColumnFilters<String> get assignedIdsJson => $composableBuilder(
     column: $table.assignedIdsJson,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get rawJson => $composableBuilder(
+    column: $table.rawJson,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get startAt => $composableBuilder(
+    column: $table.startAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get endAt => $composableBuilder(
+    column: $table.endAt,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -395,6 +561,21 @@ class $$WorkOrdersTableTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get rawJson => $composableBuilder(
+    column: $table.rawJson,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get startAt => $composableBuilder(
+    column: $table.startAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get endAt => $composableBuilder(
+    column: $table.endAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get cachedAt => $composableBuilder(
     column: $table.cachedAt,
     builder: (column) => ColumnOrderings(column),
@@ -420,6 +601,15 @@ class $$WorkOrdersTableTableAnnotationComposer
     column: $table.assignedIdsJson,
     builder: (column) => column,
   );
+
+  GeneratedColumn<String> get rawJson =>
+      $composableBuilder(column: $table.rawJson, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get startAt =>
+      $composableBuilder(column: $table.startAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get endAt =>
+      $composableBuilder(column: $table.endAt, builder: (column) => column);
 
   GeneratedColumn<DateTime> get cachedAt =>
       $composableBuilder(column: $table.cachedAt, builder: (column) => column);
@@ -465,12 +655,18 @@ class $$WorkOrdersTableTableTableManager
                 Value<String> id = const Value.absent(),
                 Value<String> name = const Value.absent(),
                 Value<String> assignedIdsJson = const Value.absent(),
+                Value<String> rawJson = const Value.absent(),
+                Value<DateTime?> startAt = const Value.absent(),
+                Value<DateTime?> endAt = const Value.absent(),
                 Value<DateTime> cachedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => WorkOrdersTableCompanion(
                 id: id,
                 name: name,
                 assignedIdsJson: assignedIdsJson,
+                rawJson: rawJson,
+                startAt: startAt,
+                endAt: endAt,
                 cachedAt: cachedAt,
                 rowid: rowid,
               ),
@@ -479,12 +675,18 @@ class $$WorkOrdersTableTableTableManager
                 required String id,
                 Value<String> name = const Value.absent(),
                 Value<String> assignedIdsJson = const Value.absent(),
+                Value<String> rawJson = const Value.absent(),
+                Value<DateTime?> startAt = const Value.absent(),
+                Value<DateTime?> endAt = const Value.absent(),
                 Value<DateTime> cachedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => WorkOrdersTableCompanion.insert(
                 id: id,
                 name: name,
                 assignedIdsJson: assignedIdsJson,
+                rawJson: rawJson,
+                startAt: startAt,
+                endAt: endAt,
                 cachedAt: cachedAt,
                 rowid: rowid,
               ),

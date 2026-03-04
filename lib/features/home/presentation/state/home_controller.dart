@@ -138,9 +138,13 @@ class HomeController extends StateNotifier<HomeState> {
       if (cached.isNotEmpty) {
         state = state.copyWith(
           workOrders: cached,
+          todayWorkOrders: _filterToday(cached),
           loadingWorkOrders: true, // por defecto, porque podría venir remoto
           workOrdersError: null,
         );
+      } else {
+        // si no hay cache, al menos dejamos la lista de hoy vacía coherente
+        state = state.copyWith(todayWorkOrders: const []);
       }
 
       // ✅ Si estamos offline (o decidimos saltar remoto), terminamos aquí.
@@ -154,6 +158,7 @@ class HomeController extends StateNotifier<HomeState> {
 
       state = state.copyWith(
         workOrders: remoteFiltered,
+        todayWorkOrders: _filterToday(remoteFiltered),
         loadingWorkOrders: false,
         workOrdersError: null,
       );
@@ -163,6 +168,57 @@ class HomeController extends StateNotifier<HomeState> {
         loadingWorkOrders: false,
         workOrdersError: e.toString(),
       );
+    }
+  }
+  // ============================
+  // Helpers: filtro "hoy"
+  // ============================
+
+  List<Map<String, dynamic>> _filterToday(List<Map<String, dynamic>> list) {
+    final now = DateTime.now();
+
+    // Rango del día local
+    final startOfDay = DateTime(now.year, now.month, now.day);
+    final endOfDay = DateTime(now.year, now.month, now.day, 23, 59, 59, 999);
+
+    return list.where((wo) {
+      final start = _extractWorkOrderStart(wo);
+      if (start == null) return false;
+
+      final end = _extractWorkOrderEnd(wo) ?? start;
+
+      // Intersección de rangos: [start,end] con [startOfDay,endOfDay]
+      final overlaps = !(end.isBefore(startOfDay) || start.isAfter(endOfDay));
+      return overlaps;
+    }).toList();
+  }
+
+  DateTime? _extractWorkOrderStart(Map<String, dynamic> wo) {
+    // Preferimos backend keys
+    final a = _tryParseDate(wo['date_start_id']);
+    if (a != null) return a;
+
+    // fallback si viene de cache local
+    final b = _tryParseDate(wo['__local_startAt']);
+    return b;
+  }
+
+  DateTime? _extractWorkOrderEnd(Map<String, dynamic> wo) {
+    final a = _tryParseDate(wo['date_end_id']);
+    if (a != null) return a;
+
+    final b = _tryParseDate(wo['__local_endAt']);
+    return b;
+  }
+
+  DateTime? _tryParseDate(dynamic v) {
+    if (v == null) return null;
+    final s = v.toString().trim();
+    if (s.isEmpty) return null;
+    try {
+      return DateTime.parse(s);
+    } catch (_) {
+      return null;
     }
   }
 

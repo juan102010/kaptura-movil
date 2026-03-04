@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../app/di/providers.dart'; // ✅ loggerProvider
 import '../providers/home_providers.dart';
+import 'package:go_router/go_router.dart';
 
 class WorkOrdersListWidget extends ConsumerWidget {
   const WorkOrdersListWidget({super.key});
@@ -11,6 +12,9 @@ class WorkOrdersListWidget extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(homeControllerProvider);
     final logger = ref.watch(loggerProvider);
+
+    // ✅ Nueva fuente: solo las de hoy
+    final list = state.todayWorkOrders;
 
     if (state.loadingWorkOrders) {
       return const SizedBox(
@@ -35,7 +39,7 @@ class WorkOrdersListWidget extends ConsumerWidget {
       );
     }
 
-    if (state.workOrders.isEmpty) {
+    if (list.isEmpty) {
       return Container(
         width: double.infinity,
         padding: const EdgeInsets.all(12),
@@ -44,7 +48,7 @@ class WorkOrdersListWidget extends ConsumerWidget {
           borderRadius: BorderRadius.circular(12),
           border: Border.all(color: Colors.grey.withValues(alpha: 0.15)),
         ),
-        child: const Text('No tienes Work Orders asignadas.'),
+        child: const Text('No tienes Work Orders programadas para hoy.'),
       );
     }
 
@@ -54,10 +58,10 @@ class WorkOrdersListWidget extends ConsumerWidget {
       child: ListView.separated(
         primary: false,
         physics: const BouncingScrollPhysics(),
-        itemCount: state.workOrders.length,
+        itemCount: list.length,
         separatorBuilder: (_, __) => const SizedBox(height: 10),
         itemBuilder: (context, index) {
-          final item = state.workOrders[index];
+          final item = list[index];
 
           final title = (item['text_nameWorkOrder_id'] ?? '').toString().trim();
           final displayTitle = title.isEmpty ? '(Sin nombre)' : title;
@@ -70,8 +74,13 @@ class WorkOrdersListWidget extends ConsumerWidget {
             child: InkWell(
               borderRadius: BorderRadius.circular(16),
               onTap: () {
-                // ✅ resumen completo del objeto en consola
+                final id = (item['_id'] ?? '').toString().trim();
+                if (id.isEmpty) return;
+
+                // opcional: mantener log
                 logger.i('WorkOrder selected: $item');
+
+                context.go('/work-orders/$id');
               },
               onLongPress: () {
                 logger.i('WorkOrder selected (long): $item');

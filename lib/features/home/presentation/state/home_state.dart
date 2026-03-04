@@ -13,6 +13,7 @@ class HomeState {
     // Work Orders
     required this.loadingWorkOrders,
     required this.workOrders,
+    required this.todayWorkOrders,
     required this.workOrdersError,
   });
 
@@ -25,6 +26,10 @@ class HomeState {
   // Work Orders
   final bool loadingWorkOrders;
   final List<Map<String, dynamic>> workOrders;
+
+  // ✅ NUEVO: solo las de hoy (derivada de workOrders)
+  final List<Map<String, dynamic>> todayWorkOrders;
+
   final String? workOrdersError;
 
   factory HomeState.initial() {
@@ -37,6 +42,7 @@ class HomeState {
 
       loadingWorkOrders: false,
       workOrders: <Map<String, dynamic>>[],
+      todayWorkOrders: <Map<String, dynamic>>[],
       workOrdersError: null,
     );
   }
@@ -50,6 +56,7 @@ class HomeState {
 
     bool? loadingWorkOrders,
     List<Map<String, dynamic>>? workOrders,
+    List<Map<String, dynamic>>? todayWorkOrders,
     String? workOrdersError,
   }) {
     return HomeState(
@@ -61,6 +68,7 @@ class HomeState {
 
       loadingWorkOrders: loadingWorkOrders ?? this.loadingWorkOrders,
       workOrders: workOrders ?? this.workOrders,
+      todayWorkOrders: todayWorkOrders ?? this.todayWorkOrders,
       workOrdersError: workOrdersError,
     );
   }

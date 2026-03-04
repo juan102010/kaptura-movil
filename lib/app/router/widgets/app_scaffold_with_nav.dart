@@ -1,89 +1,36 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-class AppScaffoldWithNav extends StatefulWidget {
+class AppScaffoldWithNav extends StatelessWidget {
   final StatefulNavigationShell navigationShell;
 
   const AppScaffoldWithNav({super.key, required this.navigationShell});
 
-  @override
-  State<AppScaffoldWithNav> createState() => _AppScaffoldWithNavState();
-}
-
-class _AppScaffoldWithNavState extends State<AppScaffoldWithNav>
-    with SingleTickerProviderStateMixin {
   static const _bg = Color(0xFFF6F7FB);
   static const _brand = Color(0xFF0B2A4A);
   static const _softBlue = Color(0xFFE7EEF8);
 
-  late final AnimationController _controller;
-  late final Animation<double> _fade;
-  late final Animation<Offset> _slide;
-
-  int _lastIndex = 0;
-
-  @override
-  void initState() {
-    super.initState();
-    _lastIndex = widget.navigationShell.currentIndex;
-
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 240),
-      reverseDuration: const Duration(milliseconds: 180),
-    );
-
-    _fade = CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic);
-
-    _slide = Tween<Offset>(
-      begin: const Offset(0.015, 0.0), // slide MUY sutil
-      end: Offset.zero,
-    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic));
-
-    // Primera entrada suave
-    _controller.forward(from: 0);
-  }
-
-  @override
-  void didUpdateWidget(covariant AppScaffoldWithNav oldWidget) {
-    super.didUpdateWidget(oldWidget);
-
-    final newIndex = widget.navigationShell.currentIndex;
-    if (newIndex != _lastIndex) {
-      _lastIndex = newIndex;
-
-      // ✅ Reproduce animación sin recrear navigationShell (sin GlobalKey duplicada)
-      _controller.forward(from: 0);
-    }
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
   void _onTap(int index) {
-    widget.navigationShell.goBranch(
+    navigationShell.goBranch(
       index,
-      initialLocation: index == widget.navigationShell.currentIndex,
+      // si vuelves a tocar el tab activo, vuelve al root de ese tab
+      initialLocation: index == navigationShell.currentIndex,
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    final current = widget.navigationShell.currentIndex;
+    final current = navigationShell.currentIndex;
 
     return Scaffold(
       backgroundColor: _bg,
 
-      // ✅ Animación suave para el contenido (sin AnimatedSwitcher)
-      body: FadeTransition(
-        opacity: _fade,
-        child: SlideTransition(position: _slide, child: widget.navigationShell),
-      ),
+      // ✅ IMPORTANTE:
+      // Con StatefulShellRoute.indexedStack NO animamos el body para evitar "flash".
+      // El cambio de tab debe ser instantáneo y limpio (como apps reales).
+      body: navigationShell,
 
-      // ✅ Bottom bar flotante (pill) + chip seleccionado + dot
+      // ✅ Bottom bar flotante (pill) + chip seleccionado + dot arriba
       bottomNavigationBar: SafeArea(
         top: false,
         child: Padding(
@@ -102,8 +49,9 @@ class _AppScaffoldWithNavState extends State<AppScaffoldWithNav>
                 ),
               ],
             ),
+
+            // ✅ Evita splash/highlight raros que a veces se ven "rosados"
             child: Theme(
-              // ✅ opcional: elimina “splash” raro de algunos temas (a veces se ve rosado)
               data: Theme.of(context).copyWith(
                 splashColor: Colors.transparent,
                 highlightColor: Colors.transparent,
@@ -153,6 +101,7 @@ class _AppScaffoldWithNavState extends State<AppScaffoldWithNav>
     required IconData icon,
     required IconData selectedIcon,
   }) {
+    // Icono normal vs icono seleccionado (chip + dot)
     final widgetIcon = selected
         ? _SelectedNavIcon(
             icon: selectedIcon,
@@ -184,6 +133,7 @@ class _SelectedNavIcon extends StatelessWidget {
       child: Stack(
         alignment: Alignment.center,
         children: [
+          // ✅ Dot arriba (premium)
           Positioned(
             top: 0,
             child: Container(
@@ -201,6 +151,8 @@ class _SelectedNavIcon extends StatelessWidget {
               ),
             ),
           ),
+
+          // ✅ Chip del icono
           Positioned(
             bottom: 0,
             child: Container(

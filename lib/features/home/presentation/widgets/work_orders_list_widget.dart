@@ -54,12 +54,12 @@ class WorkOrdersListWidget extends ConsumerWidget {
 
     // ✅ Scroll propio: altura fija + ListView interno
     return SizedBox(
-      height: 420,
+      height: 440,
       child: ListView.separated(
         primary: false,
         physics: const BouncingScrollPhysics(),
         itemCount: list.length,
-        separatorBuilder: (_, __) => const SizedBox(height: 10),
+        separatorBuilder: (_, __) => const SizedBox(height: 12),
         itemBuilder: (context, index) {
           final item = list[index];
 
@@ -68,58 +68,105 @@ class WorkOrdersListWidget extends ConsumerWidget {
 
           final initials = _initialsFrom(displayTitle);
 
-          return Material(
-            elevation: 0.6,
-            borderRadius: BorderRadius.circular(16),
-            child: InkWell(
-              borderRadius: BorderRadius.circular(16),
-              onTap: () {
-                final id = (item['_id'] ?? '').toString().trim();
-                if (id.isEmpty) return;
+          return Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(color: Colors.black.withValues(alpha: 0.05)),
+              boxShadow: [
+                BoxShadow(
+                  blurRadius: 16,
+                  offset: const Offset(0, 8),
+                  color: Colors.black.withValues(alpha: 0.05),
+                ),
+              ],
+            ),
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                borderRadius: BorderRadius.circular(18),
+                onTap: () {
+                  final id = (item['_id'] ?? '').toString().trim();
+                  if (id.isEmpty) return;
 
-                // opcional: mantener log
-                logger.i('WorkOrder selected: $item');
-
-                context.go('/work-orders/$id');
-              },
-              onLongPress: () {
-                logger.i('WorkOrder selected (long): $item');
-              },
-              child: Padding(
-                padding: const EdgeInsets.all(14),
-                child: Row(
-                  children: [
-                    CircleAvatar(
-                      radius: 22,
-                      backgroundColor: Theme.of(
-                        context,
-                      ).colorScheme.primaryContainer,
-                      foregroundColor: Theme.of(
-                        context,
-                      ).colorScheme.onPrimaryContainer,
-                      child: Text(
-                        initials,
-                        style: const TextStyle(fontWeight: FontWeight.w800),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        displayTitle,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          fontSize: 15.5,
-                          fontWeight: FontWeight.w700,
+                  logger.i('WorkOrder selected: $item');
+                  context.go('/work-orders/$id');
+                },
+                onLongPress: () {
+                  logger.i('WorkOrder selected (long): $item');
+                },
+                child: Padding(
+                  padding: const EdgeInsets.all(14),
+                  child: Row(
+                    children: [
+                      // Avatar pro (iniciales)
+                      Container(
+                        width: 46,
+                        height: 46,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(16),
+                          color: const Color(0xFFE7EEF8),
+                        ),
+                        child: Center(
+                          child: Text(
+                            initials,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w900,
+                              color: Color(0xFF0B2A4A),
+                            ),
+                          ),
                         ),
                       ),
-                    ),
-                    const SizedBox(width: 8),
-                    Icon(
-                      Icons.chevron_right,
-                      color: Theme.of(context).colorScheme.outline,
-                    ),
-                  ],
+                      const SizedBox(width: 12),
+
+                      // Title + subtitle “ligero”
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              displayTitle,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                fontSize: 15.5,
+                                fontWeight: FontWeight.w900,
+                                color: Color(0xFF0B2A4A),
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'Toca para ver detalles',
+                              style: TextStyle(
+                                fontSize: 12.5,
+                                color: const Color(
+                                  0xFF0B2A4A,
+                                ).withValues(alpha: 0.55),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      const SizedBox(width: 10),
+
+                      Container(
+                        width: 34,
+                        height: 34,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF6F7FB),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: Colors.black.withValues(alpha: 0.04),
+                          ),
+                        ),
+                        child: Icon(
+                          Icons.chevron_right_rounded,
+                          color: Theme.of(context).colorScheme.outline,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),

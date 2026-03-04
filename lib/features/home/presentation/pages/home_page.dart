@@ -206,22 +206,24 @@ class _HomePageState extends ConsumerState<HomePage> {
         : (stateClock ? 'Clock Out' : 'Clock In');
 
     return Scaffold(
+      backgroundColor: const Color(0xFFF6F7FB),
       appBar: AppBar(
+        elevation: 0,
+        backgroundColor: const Color(0xFF0B2A4A), // azul oscuro tipo Kaptura
         title: const Text(
           'Kaptura',
-          textAlign: TextAlign.center,
-          style: TextStyle(fontWeight: FontWeight.bold),
+          style: TextStyle(fontWeight: FontWeight.w800, color: Colors.white),
         ),
+        centerTitle: false,
         bottom: isOffline
-            ? PreferredSize(
-                preferredSize: const Size.fromHeight(48),
-                child: const OfflineBannerInAppBar(),
+            ? const PreferredSize(
+                preferredSize: Size.fromHeight(48),
+                child: OfflineBannerInAppBar(),
               )
             : null,
       ),
       body: RefreshIndicator(
         onRefresh: () async {
-          // ✅ MÁS SEGURO: si aún no sabemos, asumimos OFFLINE
           final offlineNow = ref
               .read(homeInternetStatusProvider)
               .when(
@@ -235,129 +237,259 @@ class _HomePageState extends ConsumerState<HomePage> {
         },
         child: ListView(
           physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.all(16),
+          padding: EdgeInsets.zero,
           children: [
-            Text(
-              'Hola, $userName',
-              style: Theme.of(context).textTheme.headlineSmall,
-            ),
-            const SizedBox(height: 24),
+            // ============================
+            // Header tipo “hero”
+            // ============================
+            _KapturaHeader(userName: userName, isOffline: isOffline),
 
-            if (state.status == HomeStatus.error && state.errorMessage != null)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 16),
-                child: Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.red.withValues(alpha: 0.08),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: Colors.red.withValues(alpha: 0.25),
+            const SizedBox(height: 14),
+
+            // ============================
+            // Contenido principal
+            // ============================
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  if (state.status == HomeStatus.error &&
+                      state.errorMessage != null)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: _ErrorCard(message: state.errorMessage!),
                     ),
-                  ),
-                  child: Text(
-                    state.errorMessage!,
-                    style: const TextStyle(color: Colors.red),
-                  ),
-                ),
-              ),
 
-            SizedBox(
-              width: double.infinity,
-              height: 50,
-              child: ElevatedButton(
-                // ✅ OFFLINE: desactivado
-                onPressed: (isLoading || isSaving || isOffline)
-                    ? null
-                    : () async {
-                        final nextAction = stateClock
-                            ? 'clock_out'
-                            : 'clock_in';
-
-                        if (nextAction == 'clock_out') {
-                          final ok = await _confirmClockOut();
-                          if (!mounted) return;
-                          if (!ok) return;
-                        }
-
-                        String? reason;
-                        if (nextAction == 'clock_in') {
-                          final already = await notifier.hasClockInToday();
-                          if (!mounted) return;
-
-                          if (already) {
-                            reason = await _askReason();
-                            if (!mounted) return;
-
-                            if (reason == null || reason.trim().isEmpty) {
-                              return;
-                            }
-                          }
-                        }
-
-                        ClockCoords coords;
-                        try {
-                          final locationService = ref.read(
-                            locationServiceProvider,
-                          );
-
-                          coords = await locationService.getRequiredCoords();
-                        } catch (e) {
-                          if (!mounted) return;
-
-                          await _showWarning(
-                            e.toString().replaceFirst('Exception: ', ''),
-                          );
-                          return;
-                        }
-                        if (!mounted) return;
-
-                        try {
-                          await notifier.toggleClock(
-                            coords: coords,
-                            reason: reason,
-                          );
-                          if (!mounted) return;
-
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(
-                                nextAction == 'clock_in'
-                                    ? 'Clock In registrado'
-                                    : 'Clock Out registrado',
+                  // ============================
+                  // Card Clock (botón pro)
+                  // ============================
+                  _SectionCard(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Row(
+                          children: [
+                            Container(
+                              width: 38,
+                              height: 38,
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFE7EEF8),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Icon(
+                                Icons.access_time_rounded,
+                                color: const Color(0xFF0B2A4A),
                               ),
                             ),
-                          );
-                        } catch (e) {
-                          if (!mounted) return;
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                stateClock
+                                    ? 'Jornada activa'
+                                    : 'Sin jornada activa',
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w800,
+                                  fontSize: 16,
+                                  color: Color(0xFF0B2A4A),
+                                ),
+                              ),
+                            ),
+                            if (isOffline)
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                  vertical: 6,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFFFF0F0),
+                                  borderRadius: BorderRadius.circular(999),
+                                  border: Border.all(
+                                    color: Colors.red.withValues(alpha: 0.20),
+                                  ),
+                                ),
+                                child: const Text(
+                                  'Offline',
+                                  style: TextStyle(
+                                    color: Colors.red,
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
 
-                          await _showWarning(
-                            e.toString().replaceFirst('Exception: ', ''),
-                          );
-                        }
-                      },
-                child: (isLoading || isSaving)
-                    ? const SizedBox(
-                        width: 22,
-                        height: 22,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : Text(buttonText),
+                        SizedBox(
+                          height: 52,
+                          child: ElevatedButton(
+                            onPressed: (isLoading || isSaving || isOffline)
+                                ? null
+                                : () async {
+                                    final nextAction = stateClock
+                                        ? 'clock_out'
+                                        : 'clock_in';
+
+                                    if (nextAction == 'clock_out') {
+                                      final ok = await _confirmClockOut();
+                                      if (!mounted) return;
+                                      if (!ok) return;
+                                    }
+
+                                    String? reason;
+                                    if (nextAction == 'clock_in') {
+                                      final already = await notifier
+                                          .hasClockInToday();
+                                      if (!mounted) return;
+
+                                      if (already) {
+                                        reason = await _askReason();
+                                        if (!mounted) return;
+
+                                        if (reason == null ||
+                                            reason.trim().isEmpty) {
+                                          return;
+                                        }
+                                      }
+                                    }
+
+                                    ClockCoords coords;
+                                    try {
+                                      final locationService = ref.read(
+                                        locationServiceProvider,
+                                      );
+                                      coords = await locationService
+                                          .getRequiredCoords();
+                                    } catch (e) {
+                                      if (!mounted) return;
+                                      await _showWarning(
+                                        e.toString().replaceFirst(
+                                          'Exception: ',
+                                          '',
+                                        ),
+                                      );
+                                      return;
+                                    }
+                                    if (!mounted) return;
+
+                                    try {
+                                      await notifier.toggleClock(
+                                        coords: coords,
+                                        reason: reason,
+                                      );
+                                      if (!mounted) return;
+
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
+                                        SnackBar(
+                                          content: Text(
+                                            nextAction == 'clock_in'
+                                                ? 'Clock In registrado'
+                                                : 'Clock Out registrado',
+                                          ),
+                                        ),
+                                      );
+                                    } catch (e) {
+                                      if (!mounted) return;
+                                      await _showWarning(
+                                        e.toString().replaceFirst(
+                                          'Exception: ',
+                                          '',
+                                        ),
+                                      );
+                                    }
+                                  },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF0B2A4A),
+                              foregroundColor: Colors.white,
+                              elevation: 0,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                            ),
+                            child: (isLoading || isSaving)
+                                ? const SizedBox(
+                                    width: 22,
+                                    height: 22,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      color: Colors.white,
+                                    ),
+                                  )
+                                : Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(
+                                        stateClock
+                                            ? Icons.logout_rounded
+                                            : Icons.login_rounded,
+                                        size: 18,
+                                      ),
+                                      const SizedBox(width: 10),
+                                      Text(
+                                        buttonText,
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.w800,
+                                          fontSize: 15.5,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                          ),
+                        ),
+
+                        const SizedBox(height: 8),
+                        Text(
+                          isOffline
+                              ? 'Conéctate a internet para registrar Clock In/Out.'
+                              : (stateClock
+                                    ? 'Recuerda hacer Clock Out al finalizar.'
+                                    : 'Haz Clock In para iniciar tu jornada.'),
+                          style: TextStyle(
+                            color: const Color(
+                              0xFF0B2A4A,
+                            ).withValues(alpha: 0.65),
+                            fontSize: 12.5,
+                            height: 1.3,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 14),
+
+                  // ============================
+                  // Header sección Work Orders
+                  // ============================
+                  Row(
+                    children: [
+                      const Text(
+                        'Work Orders de hoy',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w900,
+                          color: Color(0xFF0B2A4A),
+                        ),
+                      ),
+                      const Spacer(),
+                      Icon(
+                        Icons.today_rounded,
+                        size: 18,
+                        color: const Color(0xFF0B2A4A).withValues(alpha: 0.55),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+
+                  const WorkOrdersListWidget(),
+
+                  const SizedBox(height: 18),
+                ],
               ),
             ),
-
-            const SizedBox(height: 16),
-
-            Divider(
-              height: 24,
-              thickness: 1,
-              color: Colors.grey.withValues(alpha: 0.25),
-            ),
-
-            const SizedBox(height: 8),
-
-            const WorkOrdersListWidget(),
           ],
         ),
       ),
@@ -370,6 +502,136 @@ class _ReasonDialog extends StatefulWidget {
 
   @override
   State<_ReasonDialog> createState() => _ReasonDialogState();
+}
+
+class _KapturaHeader extends StatelessWidget {
+  const _KapturaHeader({required this.userName, required this.isOffline});
+
+  final String userName;
+  final bool isOffline;
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      children: [
+        Container(
+          height: 150,
+          decoration: const BoxDecoration(color: Color(0xFF0B2A4A)),
+        ),
+        // “curva” blanca tipo onboarding
+        Positioned(
+          left: 0,
+          right: 0,
+          bottom: 0,
+          child: Container(
+            height: 55,
+            decoration: const BoxDecoration(
+              color: Color(0xFFF6F7FB),
+              borderRadius: BorderRadius.vertical(
+                top: Radius.elliptical(700, 120),
+              ),
+            ),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 18, 16, 0),
+          child: Row(
+            children: [
+              CircleAvatar(
+                radius: 22,
+                backgroundColor: Colors.white.withValues(alpha: 0.14),
+                child: Text(
+                  _initials(userName),
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  'Hola, $userName',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+              ),
+              if (isOffline)
+                Icon(
+                  Icons.wifi_off_rounded,
+                  color: Colors.white.withValues(alpha: 0.85),
+                ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  static String _initials(String text) {
+    final clean = text.trim();
+    if (clean.isEmpty) return '?';
+    final parts = clean
+        .split(RegExp(r'\s+'))
+        .where((e) => e.isNotEmpty)
+        .toList();
+    final first = parts.isNotEmpty ? parts[0][0] : '';
+    final second = parts.length > 1 ? parts[1][0] : '';
+    final out = (first + second).toUpperCase();
+    return out.isEmpty ? '?' : out;
+  }
+}
+
+class _SectionCard extends StatelessWidget {
+  const _SectionCard({required this.child});
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: Colors.black.withValues(alpha: 0.05)),
+        boxShadow: [
+          BoxShadow(
+            blurRadius: 18,
+            offset: const Offset(0, 10),
+            color: Colors.black.withValues(alpha: 0.06),
+          ),
+        ],
+      ),
+      child: child,
+    );
+  }
+}
+
+class _ErrorCard extends StatelessWidget {
+  const _ErrorCard({required this.message});
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.red.withValues(alpha: 0.07),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: Colors.red.withValues(alpha: 0.22)),
+      ),
+      child: Text(
+        message,
+        style: const TextStyle(color: Colors.red, fontWeight: FontWeight.w600),
+      ),
+    );
+  }
 }
 
 class _ReasonDialogState extends State<_ReasonDialog> {

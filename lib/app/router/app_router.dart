@@ -11,49 +11,8 @@ import '../../features/settings/presentation/pages/settings_page.dart';
 import '../../features/work_orders/presentation/pages/work_order_details_page.dart';
 import '../../features/work_orders/presentation/pages/work_orders_page.dart';
 
-/// Placeholders temporales
-class WorkOrdersPlaceholderPage extends StatelessWidget {
-  const WorkOrdersPlaceholderPage({super.key});
-  @override
-  Widget build(BuildContext context) {
-    return const Scaffold(body: Center(child: Text('Work Orders (pendiente)')));
-  }
-}
-
-/// Shell con menú inferior
-class AppScaffoldWithNav extends StatelessWidget {
-  final StatefulNavigationShell navigationShell;
-  const AppScaffoldWithNav({super.key, required this.navigationShell});
-
-  void _onTap(int index) {
-    navigationShell.goBranch(
-      index,
-      initialLocation: index == navigationShell.currentIndex,
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: navigationShell,
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: navigationShell.currentIndex,
-        onDestinationSelected: _onTap,
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.assignment_rounded),
-            label: 'Work Orders',
-          ),
-          NavigationDestination(icon: Icon(Icons.home_rounded), label: 'Home'),
-          NavigationDestination(
-            icon: Icon(Icons.settings_rounded),
-            label: 'Settings',
-          ),
-        ],
-      ),
-    );
-  }
-}
+// ✅ IMPORTA el scaffold correcto (el PRO)
+import 'widgets/app_scaffold_with_nav.dart';
 
 /// ✅ refresca GoRouter cuando cambie auth state
 class GoRouterRefreshNotifier extends ChangeNotifier {
@@ -78,7 +37,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
   final refreshNotifier = GoRouterRefreshNotifier(ref);
 
   final authState = ref.watch(authControllerProvider);
-
   bool isAuthed(AuthState s) => s is AuthAuthenticated;
 
   return GoRouter(
@@ -103,7 +61,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       // ✅ Si está autenticado y está en / o /login → /home
       if (authed && (loggingIn || onWelcome)) return '/home';
 
-      // si todo ok, no redirige
       return null;
     },
     routes: [
@@ -158,6 +115,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       // Shell (protegido por redirect)
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) {
+          // ✅ Aquí ya usas la versión PRO importada
           return AppScaffoldWithNav(navigationShell: navigationShell);
         },
         branches: [

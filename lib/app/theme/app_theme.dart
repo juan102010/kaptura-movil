@@ -1,55 +1,60 @@
 import 'package:flutter/material.dart';
 
 class AppTheme {
+  static const _brand = Color(0xFF0B2A4A);
+  static const _bg = Color(0xFFF6F7FB);
+
   static ThemeData light() {
     final colorScheme = ColorScheme.fromSeed(
-      seedColor: Colors.indigo, // más sobrio/pro que azul puro
+      seedColor: _brand,
       brightness: Brightness.light,
+      surface: Colors.white,
     );
 
     return ThemeData(
       useMaterial3: true,
       colorScheme: colorScheme,
 
-      // Tipografía y densidad (look más “app real”)
+      // ✅ Fondo global consistente
+      scaffoldBackgroundColor: _bg,
+
       visualDensity: VisualDensity.standard,
 
-      // AppBar más limpio
+      // ✅ AppBar ya alineado con Kaptura
       appBarTheme: AppBarTheme(
         centerTitle: false,
         elevation: 0,
-        backgroundColor: colorScheme.surface,
-        foregroundColor: colorScheme.onSurface,
+        backgroundColor: _brand, // 👈 header oscuro (como lo vienes usando)
+        foregroundColor: Colors.white,
         surfaceTintColor: Colors.transparent,
-        titleTextStyle: TextStyle(
+        titleTextStyle: const TextStyle(
           fontSize: 20,
-          fontWeight: FontWeight.w600,
-          color: colorScheme.onSurface,
+          fontWeight: FontWeight.w900,
+          color: Colors.white,
         ),
       ),
 
-      // Botones con estilo consistente
+      // Botones consistente
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
           minimumSize: const Size(140, 48),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(14),
           ),
-          textStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+          textStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800),
         ),
       ),
 
-      // SnackBar más “premium”
       snackBarTheme: SnackBarThemeData(
         behavior: SnackBarBehavior.floating,
         elevation: 2,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
 
-      // ✅ NavigationBar moderno y consistente
+      // ✅ NavigationBar consistente (si sigues usando NavigationBar en algún lugar)
       navigationBarTheme: NavigationBarThemeData(
         height: 72,
-        backgroundColor: colorScheme.surface,
+        backgroundColor: Colors.white,
         surfaceTintColor: Colors.transparent,
         indicatorColor: colorScheme.primary.withValues(alpha: 0.12),
         labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
@@ -57,19 +62,15 @@ class AppTheme {
           final isSelected = states.contains(WidgetState.selected);
           return IconThemeData(
             size: 24,
-            color: isSelected
-                ? colorScheme.primary
-                : colorScheme.onSurfaceVariant,
+            color: isSelected ? _brand : colorScheme.onSurfaceVariant,
           );
         }),
         labelTextStyle: WidgetStateProperty.resolveWith((states) {
           final isSelected = states.contains(WidgetState.selected);
           return TextStyle(
             fontSize: 12,
-            fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-            color: isSelected
-                ? colorScheme.primary
-                : colorScheme.onSurfaceVariant,
+            fontWeight: isSelected ? FontWeight.w900 : FontWeight.w600,
+            color: isSelected ? _brand : colorScheme.onSurfaceVariant,
           );
         }),
       ),

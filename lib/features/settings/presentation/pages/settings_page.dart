@@ -21,6 +21,9 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
       barrierDismissible: false,
       builder: (ctx) {
         return AlertDialog(
+          backgroundColor: Colors.white,
+          surfaceTintColor:
+              Colors.transparent, // ✅ quita el “tinte” rosado de M3
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(18),
           ),

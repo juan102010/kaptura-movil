@@ -14,6 +14,14 @@ import '../../features/work_orders/presentation/pages/work_orders_page.dart';
 // ✅ IMPORTA el scaffold correcto (el PRO)
 import 'widgets/app_scaffold_with_nav.dart';
 
+// -------------------------------------------------------------
+// 🧪 PRUEBA TEMPORAL
+// -------------------------------------------------------------
+// Esta vista es SOLO PARA PRUEBAS de la nueva feature customers.
+// Se eliminará cuando se integre correctamente al flujo final.
+// -------------------------------------------------------------
+import '../../features/customers/presentation/pages/customers_page.dart';
+
 /// ✅ refresca GoRouter cuando cambie auth state
 class GoRouterRefreshNotifier extends ChangeNotifier {
   GoRouterRefreshNotifier(this._ref) {
@@ -51,7 +59,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       final inProtected =
           location.startsWith('/home') ||
           location.startsWith('/work-orders') ||
-          location.startsWith('/settings');
+          location.startsWith('/settings') ||
+          location.startsWith('/customers'); // 🧪 PRUEBA TEMPORAL
 
       final authed = isAuthed(authState);
 
@@ -64,7 +73,9 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       return null;
     },
     routes: [
+      // ----------------------------
       // Públicas
+      // ----------------------------
       GoRoute(path: '/', builder: (context, state) => const WelcomePage()),
 
       GoRoute(
@@ -112,13 +123,17 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         },
       ),
 
+      // ----------------------------
       // Shell (protegido por redirect)
+      // ----------------------------
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) {
-          // ✅ Aquí ya usas la versión PRO importada
           return AppScaffoldWithNav(navigationShell: navigationShell);
         },
         branches: [
+          // -------------------------------------------------------------
+          // WORK ORDERS
+          // -------------------------------------------------------------
           StatefulShellBranch(
             routes: [
               GoRoute(
@@ -136,6 +151,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               ),
             ],
           ),
+
+          // -------------------------------------------------------------
+          // HOME
+          // -------------------------------------------------------------
           StatefulShellBranch(
             routes: [
               GoRoute(
@@ -144,11 +163,35 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               ),
             ],
           ),
+
+          // -------------------------------------------------------------
+          // SETTINGS
+          // -------------------------------------------------------------
           StatefulShellBranch(
             routes: [
               GoRoute(
                 path: '/settings',
                 builder: (context, state) => const SettingsPage(),
+              ),
+            ],
+          ),
+
+          // -------------------------------------------------------------
+          // 🧪 CUSTOMERS (VISTA DE PRUEBA)
+          // -------------------------------------------------------------
+          // Esta sección es SOLO PARA TESTEAR:
+          // - API customers
+          // - cache SQLite
+          // - lectura de campos anidados
+          //
+          // ⚠️ Esta ruta se eliminará cuando se integre
+          // correctamente al módulo final.
+          // -------------------------------------------------------------
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/customers',
+                builder: (context, state) => const CustomersPage(),
               ),
             ],
           ),

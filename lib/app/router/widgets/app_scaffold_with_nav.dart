@@ -68,23 +68,45 @@ class AppScaffoldWithNav extends StatelessWidget {
                 unselectedItemColor: _brand.withValues(alpha: 0.55),
                 showUnselectedLabels: true,
                 items: [
+                  // 0) Work Orders
                   _navItem(
                     selected: current == 0,
                     label: 'Work Orders',
                     icon: Icons.assignment_outlined,
                     selectedIcon: Icons.assignment_rounded,
                   ),
+
+                  // 1) Home
                   _navItem(
                     selected: current == 1,
                     label: 'Home',
                     icon: Icons.home_outlined,
                     selectedIcon: Icons.home_rounded,
                   ),
+
+                  // 2) Settings
                   _navItem(
                     selected: current == 2,
                     label: 'Settings',
                     icon: Icons.settings_outlined,
                     selectedIcon: Icons.settings_rounded,
+                  ),
+
+                  // -------------------------------------------------------------
+                  // 🧪 PRUEBA TEMPORAL: CUSTOMERS
+                  // -------------------------------------------------------------
+                  // Este tab es SOLO PARA PROBAR:
+                  // - vista customers
+                  // - cache sqlite
+                  // - lectura de datos anidados
+                  //
+                  // ⚠️ Se borrará cuando se integre correctamente al módulo final.
+                  // -------------------------------------------------------------
+                  _navItem(
+                    selected: current == 3,
+                    label: 'Customers',
+                    icon: Icons.people_outline,
+                    selectedIcon: Icons.people_rounded,
                   ),
                 ],
               ),

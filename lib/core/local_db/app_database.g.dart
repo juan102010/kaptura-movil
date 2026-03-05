@@ -456,17 +456,282 @@ class WorkOrdersTableCompanion extends UpdateCompanion<WorkOrdersTableData> {
   }
 }
 
+class $CustomersTableTable extends CustomersTable
+    with TableInfo<$CustomersTableTable, CustomersTableData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $CustomersTableTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _rawJsonMeta = const VerificationMeta(
+    'rawJson',
+  );
+  @override
+  late final GeneratedColumn<String> rawJson = GeneratedColumn<String>(
+    'raw_json',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('{}'),
+  );
+  static const VerificationMeta _cachedAtMeta = const VerificationMeta(
+    'cachedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> cachedAt = GeneratedColumn<DateTime>(
+    'cached_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [id, rawJson, cachedAt];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'customers_table';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<CustomersTableData> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('raw_json')) {
+      context.handle(
+        _rawJsonMeta,
+        rawJson.isAcceptableOrUnknown(data['raw_json']!, _rawJsonMeta),
+      );
+    }
+    if (data.containsKey('cached_at')) {
+      context.handle(
+        _cachedAtMeta,
+        cachedAt.isAcceptableOrUnknown(data['cached_at']!, _cachedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  CustomersTableData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return CustomersTableData(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      rawJson: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}raw_json'],
+      )!,
+      cachedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}cached_at'],
+      )!,
+    );
+  }
+
+  @override
+  $CustomersTableTable createAlias(String alias) {
+    return $CustomersTableTable(attachedDatabase, alias);
+  }
+}
+
+class CustomersTableData extends DataClass
+    implements Insertable<CustomersTableData> {
+  final String id;
+  final String rawJson;
+  final DateTime cachedAt;
+  const CustomersTableData({
+    required this.id,
+    required this.rawJson,
+    required this.cachedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['raw_json'] = Variable<String>(rawJson);
+    map['cached_at'] = Variable<DateTime>(cachedAt);
+    return map;
+  }
+
+  CustomersTableCompanion toCompanion(bool nullToAbsent) {
+    return CustomersTableCompanion(
+      id: Value(id),
+      rawJson: Value(rawJson),
+      cachedAt: Value(cachedAt),
+    );
+  }
+
+  factory CustomersTableData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return CustomersTableData(
+      id: serializer.fromJson<String>(json['id']),
+      rawJson: serializer.fromJson<String>(json['rawJson']),
+      cachedAt: serializer.fromJson<DateTime>(json['cachedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'rawJson': serializer.toJson<String>(rawJson),
+      'cachedAt': serializer.toJson<DateTime>(cachedAt),
+    };
+  }
+
+  CustomersTableData copyWith({
+    String? id,
+    String? rawJson,
+    DateTime? cachedAt,
+  }) => CustomersTableData(
+    id: id ?? this.id,
+    rawJson: rawJson ?? this.rawJson,
+    cachedAt: cachedAt ?? this.cachedAt,
+  );
+  CustomersTableData copyWithCompanion(CustomersTableCompanion data) {
+    return CustomersTableData(
+      id: data.id.present ? data.id.value : this.id,
+      rawJson: data.rawJson.present ? data.rawJson.value : this.rawJson,
+      cachedAt: data.cachedAt.present ? data.cachedAt.value : this.cachedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('CustomersTableData(')
+          ..write('id: $id, ')
+          ..write('rawJson: $rawJson, ')
+          ..write('cachedAt: $cachedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, rawJson, cachedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is CustomersTableData &&
+          other.id == this.id &&
+          other.rawJson == this.rawJson &&
+          other.cachedAt == this.cachedAt);
+}
+
+class CustomersTableCompanion extends UpdateCompanion<CustomersTableData> {
+  final Value<String> id;
+  final Value<String> rawJson;
+  final Value<DateTime> cachedAt;
+  final Value<int> rowid;
+  const CustomersTableCompanion({
+    this.id = const Value.absent(),
+    this.rawJson = const Value.absent(),
+    this.cachedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  CustomersTableCompanion.insert({
+    required String id,
+    this.rawJson = const Value.absent(),
+    this.cachedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id);
+  static Insertable<CustomersTableData> custom({
+    Expression<String>? id,
+    Expression<String>? rawJson,
+    Expression<DateTime>? cachedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (rawJson != null) 'raw_json': rawJson,
+      if (cachedAt != null) 'cached_at': cachedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  CustomersTableCompanion copyWith({
+    Value<String>? id,
+    Value<String>? rawJson,
+    Value<DateTime>? cachedAt,
+    Value<int>? rowid,
+  }) {
+    return CustomersTableCompanion(
+      id: id ?? this.id,
+      rawJson: rawJson ?? this.rawJson,
+      cachedAt: cachedAt ?? this.cachedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (rawJson.present) {
+      map['raw_json'] = Variable<String>(rawJson.value);
+    }
+    if (cachedAt.present) {
+      map['cached_at'] = Variable<DateTime>(cachedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('CustomersTableCompanion(')
+          ..write('id: $id, ')
+          ..write('rawJson: $rawJson, ')
+          ..write('cachedAt: $cachedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
   late final $WorkOrdersTableTable workOrdersTable = $WorkOrdersTableTable(
     this,
   );
+  late final $CustomersTableTable customersTable = $CustomersTableTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
   @override
-  List<DatabaseSchemaEntity> get allSchemaEntities => [workOrdersTable];
+  List<DatabaseSchemaEntity> get allSchemaEntities => [
+    workOrdersTable,
+    customersTable,
+  ];
 }
 
 typedef $$WorkOrdersTableTableCreateCompanionBuilder =
@@ -719,10 +984,180 @@ typedef $$WorkOrdersTableTableProcessedTableManager =
       WorkOrdersTableData,
       PrefetchHooks Function()
     >;
+typedef $$CustomersTableTableCreateCompanionBuilder =
+    CustomersTableCompanion Function({
+      required String id,
+      Value<String> rawJson,
+      Value<DateTime> cachedAt,
+      Value<int> rowid,
+    });
+typedef $$CustomersTableTableUpdateCompanionBuilder =
+    CustomersTableCompanion Function({
+      Value<String> id,
+      Value<String> rawJson,
+      Value<DateTime> cachedAt,
+      Value<int> rowid,
+    });
+
+class $$CustomersTableTableFilterComposer
+    extends Composer<_$AppDatabase, $CustomersTableTable> {
+  $$CustomersTableTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get rawJson => $composableBuilder(
+    column: $table.rawJson,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get cachedAt => $composableBuilder(
+    column: $table.cachedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$CustomersTableTableOrderingComposer
+    extends Composer<_$AppDatabase, $CustomersTableTable> {
+  $$CustomersTableTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get rawJson => $composableBuilder(
+    column: $table.rawJson,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get cachedAt => $composableBuilder(
+    column: $table.cachedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$CustomersTableTableAnnotationComposer
+    extends Composer<_$AppDatabase, $CustomersTableTable> {
+  $$CustomersTableTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get rawJson =>
+      $composableBuilder(column: $table.rawJson, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get cachedAt =>
+      $composableBuilder(column: $table.cachedAt, builder: (column) => column);
+}
+
+class $$CustomersTableTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $CustomersTableTable,
+          CustomersTableData,
+          $$CustomersTableTableFilterComposer,
+          $$CustomersTableTableOrderingComposer,
+          $$CustomersTableTableAnnotationComposer,
+          $$CustomersTableTableCreateCompanionBuilder,
+          $$CustomersTableTableUpdateCompanionBuilder,
+          (
+            CustomersTableData,
+            BaseReferences<
+              _$AppDatabase,
+              $CustomersTableTable,
+              CustomersTableData
+            >,
+          ),
+          CustomersTableData,
+          PrefetchHooks Function()
+        > {
+  $$CustomersTableTableTableManager(
+    _$AppDatabase db,
+    $CustomersTableTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$CustomersTableTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$CustomersTableTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$CustomersTableTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> rawJson = const Value.absent(),
+                Value<DateTime> cachedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => CustomersTableCompanion(
+                id: id,
+                rawJson: rawJson,
+                cachedAt: cachedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                Value<String> rawJson = const Value.absent(),
+                Value<DateTime> cachedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => CustomersTableCompanion.insert(
+                id: id,
+                rawJson: rawJson,
+                cachedAt: cachedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$CustomersTableTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $CustomersTableTable,
+      CustomersTableData,
+      $$CustomersTableTableFilterComposer,
+      $$CustomersTableTableOrderingComposer,
+      $$CustomersTableTableAnnotationComposer,
+      $$CustomersTableTableCreateCompanionBuilder,
+      $$CustomersTableTableUpdateCompanionBuilder,
+      (
+        CustomersTableData,
+        BaseReferences<_$AppDatabase, $CustomersTableTable, CustomersTableData>,
+      ),
+      CustomersTableData,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
   $AppDatabaseManager(this._db);
   $$WorkOrdersTableTableTableManager get workOrdersTable =>
       $$WorkOrdersTableTableTableManager(_db, _db.workOrdersTable);
+  $$CustomersTableTableTableManager get customersTable =>
+      $$CustomersTableTableTableManager(_db, _db.customersTable);
 }

@@ -14,9 +14,7 @@ import '../../domain/usecases/get_customers_usecase.dart';
 final customersRemoteDataSourceProvider = Provider<CustomersRemoteDataSource>((
   ref,
 ) {
-  final apiDio = ref.watch(
-    dioClientsProvider,
-  ); // 👈 cambia si tu nombre es otro
+  final apiDio = ref.watch(dioClientsProvider);
   return CustomersRemoteDataSourceImpl(apiDio: apiDio.api);
 });
 

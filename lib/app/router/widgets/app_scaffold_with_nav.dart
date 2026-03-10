@@ -108,6 +108,24 @@ class AppScaffoldWithNav extends StatelessWidget {
                     icon: Icons.people_outline,
                     selectedIcon: Icons.people_rounded,
                   ),
+
+                  // -------------------------------------------------------------
+                  // 🧪 PRUEBA TEMPORAL: PROJECTS
+                  // -------------------------------------------------------------
+                  // Este tab es SOLO PARA PROBAR:
+                  // - vista projects
+                  // - cache sqlite
+                  // - lectura de rawJson
+                  // - lectura de datos anidados (list_workOrder_id)
+                  //
+                  // ⚠️ Se borrará cuando se integre correctamente al módulo final.
+                  // -------------------------------------------------------------
+                  _navItem(
+                    selected: current == 4,
+                    label: 'Projects',
+                    icon: Icons.folder_open_outlined,
+                    selectedIcon: Icons.folder_rounded,
+                  ),
                 ],
               ),
             ),
@@ -123,7 +141,6 @@ class AppScaffoldWithNav extends StatelessWidget {
     required IconData icon,
     required IconData selectedIcon,
   }) {
-    // Icono normal vs icono seleccionado (chip + dot)
     final widgetIcon = selected
         ? _SelectedNavIcon(
             icon: selectedIcon,
@@ -155,7 +172,6 @@ class _SelectedNavIcon extends StatelessWidget {
       child: Stack(
         alignment: Alignment.center,
         children: [
-          // ✅ Dot arriba (premium)
           Positioned(
             top: 0,
             child: Container(
@@ -173,8 +189,6 @@ class _SelectedNavIcon extends StatelessWidget {
               ),
             ),
           ),
-
-          // ✅ Chip del icono
           Positioned(
             bottom: 0,
             child: Container(

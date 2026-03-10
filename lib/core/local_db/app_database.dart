@@ -3,15 +3,16 @@ import 'package:drift_flutter/drift_flutter.dart';
 
 import 'tables/work_orders_table.dart';
 import 'tables/customers_table.dart';
+import 'tables/projects_table.dart';
 
 part 'app_database.g.dart';
 
-@DriftDatabase(tables: [WorkOrdersTable, CustomersTable])
+@DriftDatabase(tables: [WorkOrdersTable, CustomersTable, ProjectsTable])
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -29,6 +30,11 @@ class AppDatabase extends _$AppDatabase {
       // v2 -> v3: crear tabla customers
       if (from < 3) {
         await m.createTable(customersTable);
+      }
+
+      // v3 -> v4: crear tabla projects
+      if (from < 4) {
+        await m.createTable(projectsTable);
       }
     },
   );

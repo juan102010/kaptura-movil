@@ -15,12 +15,20 @@ import '../../features/work_orders/presentation/pages/work_orders_page.dart';
 import 'widgets/app_scaffold_with_nav.dart';
 
 // -------------------------------------------------------------
-// 🧪 PRUEBA TEMPORAL
+// 🧪 PRUEBA TEMPORAL: CUSTOMERS
 // -------------------------------------------------------------
 // Esta vista es SOLO PARA PRUEBAS de la nueva feature customers.
 // Se eliminará cuando se integre correctamente al flujo final.
 // -------------------------------------------------------------
 import '../../features/customers/presentation/pages/customers_page.dart';
+
+// -------------------------------------------------------------
+// 🧪 PRUEBA TEMPORAL: PROJECTS
+// -------------------------------------------------------------
+// Esta vista es SOLO PARA PRUEBAS de la nueva feature projects.
+// Se eliminará cuando se integre correctamente al flujo final.
+// -------------------------------------------------------------
+import '../../features/projects/presentation/pages/projects_page.dart';
 
 /// ✅ refresca GoRouter cuando cambie auth state
 class GoRouterRefreshNotifier extends ChangeNotifier {
@@ -60,7 +68,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           location.startsWith('/home') ||
           location.startsWith('/work-orders') ||
           location.startsWith('/settings') ||
-          location.startsWith('/customers'); // 🧪 PRUEBA TEMPORAL
+          location.startsWith('/customers') || // 🧪 PRUEBA TEMPORAL
+          location.startsWith('/projects'); // 🧪 PRUEBA TEMPORAL
 
       final authed = isAuthed(authState);
 
@@ -192,6 +201,27 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: '/customers',
                 builder: (context, state) => const CustomersPage(),
+              ),
+            ],
+          ),
+
+          // -------------------------------------------------------------
+          // 🧪 PROJECTS (VISTA DE PRUEBA)
+          // -------------------------------------------------------------
+          // Esta sección es SOLO PARA TESTEAR:
+          // - API projects
+          // - cache SQLite
+          // - lectura de rawJson
+          // - lectura de campos anidados como list_workOrder_id[0].name
+          //
+          // ⚠️ Esta ruta se eliminará cuando se integre
+          // correctamente al módulo final.
+          // -------------------------------------------------------------
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/projects',
+                builder: (context, state) => const ProjectsPage(),
               ),
             ],
           ),

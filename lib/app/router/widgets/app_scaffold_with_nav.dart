@@ -11,6 +11,10 @@ class AppScaffoldWithNav extends StatelessWidget {
   static const _softBlue = Color(0xFFE7EEF8);
 
   void _onTap(int index) {
+    debugPrint(
+      '[BottomNav] tap -> targetIndex: $index | currentIndex: ${navigationShell.currentIndex}',
+    );
+
     navigationShell.goBranch(
       index,
       // si vuelves a tocar el tab activo, vuelve al root de ese tab
@@ -21,6 +25,8 @@ class AppScaffoldWithNav extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final current = navigationShell.currentIndex;
+
+    debugPrint('[BottomNav] build -> currentIndex: $current');
 
     return Scaffold(
       backgroundColor: _bg,
@@ -49,8 +55,6 @@ class AppScaffoldWithNav extends StatelessWidget {
                 ),
               ],
             ),
-
-            // ✅ Evita splash/highlight raros que a veces se ven "rosados"
             child: Theme(
               data: Theme.of(context).copyWith(
                 splashColor: Colors.transparent,
@@ -92,16 +96,7 @@ class AppScaffoldWithNav extends StatelessWidget {
                     selectedIcon: Icons.settings_rounded,
                   ),
 
-                  // -------------------------------------------------------------
-                  // 🧪 PRUEBA TEMPORAL: CUSTOMERS
-                  // -------------------------------------------------------------
-                  // Este tab es SOLO PARA PROBAR:
-                  // - vista customers
-                  // - cache sqlite
-                  // - lectura de datos anidados
-                  //
-                  // ⚠️ Se borrará cuando se integre correctamente al módulo final.
-                  // -------------------------------------------------------------
+                  // 3) Customers
                   _navItem(
                     selected: current == 3,
                     label: 'Customers',
@@ -109,22 +104,20 @@ class AppScaffoldWithNav extends StatelessWidget {
                     selectedIcon: Icons.people_rounded,
                   ),
 
-                  // -------------------------------------------------------------
-                  // 🧪 PRUEBA TEMPORAL: PROJECTS
-                  // -------------------------------------------------------------
-                  // Este tab es SOLO PARA PROBAR:
-                  // - vista projects
-                  // - cache sqlite
-                  // - lectura de rawJson
-                  // - lectura de datos anidados (list_workOrder_id)
-                  //
-                  // ⚠️ Se borrará cuando se integre correctamente al módulo final.
-                  // -------------------------------------------------------------
+                  // 4) Projects
                   _navItem(
                     selected: current == 4,
                     label: 'Projects',
                     icon: Icons.folder_open_outlined,
                     selectedIcon: Icons.folder_rounded,
+                  ),
+
+                  // 5) Users
+                  _navItem(
+                    selected: current == 5,
+                    label: 'Users',
+                    icon: Icons.person_outline,
+                    selectedIcon: Icons.person,
                   ),
                 ],
               ),

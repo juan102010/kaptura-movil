@@ -17,18 +17,17 @@ import 'widgets/app_scaffold_with_nav.dart';
 // -------------------------------------------------------------
 // 🧪 PRUEBA TEMPORAL: CUSTOMERS
 // -------------------------------------------------------------
-// Esta vista es SOLO PARA PRUEBAS de la nueva feature customers.
-// Se eliminará cuando se integre correctamente al flujo final.
-// -------------------------------------------------------------
 import '../../features/customers/presentation/pages/customers_page.dart';
 
 // -------------------------------------------------------------
 // 🧪 PRUEBA TEMPORAL: PROJECTS
 // -------------------------------------------------------------
-// Esta vista es SOLO PARA PRUEBAS de la nueva feature projects.
-// Se eliminará cuando se integre correctamente al flujo final.
-// -------------------------------------------------------------
 import '../../features/projects/presentation/pages/projects_page.dart';
+
+// -------------------------------------------------------------
+// 🧪 PRUEBA TEMPORAL: USERS
+// -------------------------------------------------------------
+import '../../features/users/presentation/pages/users_page.dart';
 
 /// ✅ refresca GoRouter cuando cambie auth state
 class GoRouterRefreshNotifier extends ChangeNotifier {
@@ -61,6 +60,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     redirect: (context, state) {
       final location = state.uri.toString();
 
+      debugPrint('[Router] redirect check -> location: $location');
+      debugPrint(
+        '[Router] auth state -> ${authState.runtimeType} | authed: ${isAuthed(authState)}',
+      );
+
       final loggingIn = location == '/login';
       final onWelcome = location == '/';
 
@@ -69,27 +73,46 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           location.startsWith('/work-orders') ||
           location.startsWith('/settings') ||
           location.startsWith('/customers') || // 🧪 PRUEBA TEMPORAL
-          location.startsWith('/projects'); // 🧪 PRUEBA TEMPORAL
+          location.startsWith('/projects') || // 🧪 PRUEBA TEMPORAL
+          location.startsWith('/users'); // 🧪 PRUEBA TEMPORAL
 
       final authed = isAuthed(authState);
 
       // ✅ Si NO está autenticado y quiere entrar a protegido → /login
-      if (!authed && inProtected) return '/login';
+      if (!authed && inProtected) {
+        debugPrint(
+          '[Router] redirecting unauthenticated user from $location to /login',
+        );
+        return '/login';
+      }
 
       // ✅ Si está autenticado y está en / o /login → /home
-      if (authed && (loggingIn || onWelcome)) return '/home';
+      if (authed && (loggingIn || onWelcome)) {
+        debugPrint(
+          '[Router] redirecting authenticated user from $location to /home',
+        );
+        return '/home';
+      }
 
+      debugPrint('[Router] no redirect for $location');
       return null;
     },
     routes: [
       // ----------------------------
       // Públicas
       // ----------------------------
-      GoRoute(path: '/', builder: (context, state) => const WelcomePage()),
+      GoRoute(
+        path: '/',
+        builder: (context, state) {
+          debugPrint('[Router] building WelcomePage');
+          return const WelcomePage();
+        },
+      ),
 
       GoRoute(
         path: '/login',
         pageBuilder: (context, state) {
+          debugPrint('[Router] building LoginPage');
           return CustomTransitionPage(
             key: state.pageKey,
             child: const LoginPage(),
@@ -137,6 +160,9 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       // ----------------------------
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) {
+          debugPrint(
+            '[Router] building AppScaffoldWithNav | currentIndex: ${navigationShell.currentIndex}',
+          );
           return AppScaffoldWithNav(navigationShell: navigationShell);
         },
         branches: [
@@ -147,12 +173,18 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             routes: [
               GoRoute(
                 path: '/work-orders',
-                builder: (context, state) => const WorkOrdersPage(),
+                builder: (context, state) {
+                  debugPrint('[Router] building WorkOrdersPage');
+                  return const WorkOrdersPage();
+                },
                 routes: [
                   GoRoute(
                     path: ':id',
                     builder: (context, state) {
                       final id = state.pathParameters['id'] ?? '';
+                      debugPrint(
+                        '[Router] building WorkOrderDetailsPage | id: $id',
+                      );
                       return WorkOrderDetailsPage(workOrderId: id);
                     },
                   ),
@@ -168,7 +200,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             routes: [
               GoRoute(
                 path: '/home',
-                builder: (context, state) => const HomePage(),
+                builder: (context, state) {
+                  debugPrint('[Router] building HomePage');
+                  return const HomePage();
+                },
               ),
             ],
           ),
@@ -180,7 +215,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             routes: [
               GoRoute(
                 path: '/settings',
-                builder: (context, state) => const SettingsPage(),
+                builder: (context, state) {
+                  debugPrint('[Router] building SettingsPage');
+                  return const SettingsPage();
+                },
               ),
             ],
           ),
@@ -188,19 +226,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           // -------------------------------------------------------------
           // 🧪 CUSTOMERS (VISTA DE PRUEBA)
           // -------------------------------------------------------------
-          // Esta sección es SOLO PARA TESTEAR:
-          // - API customers
-          // - cache SQLite
-          // - lectura de campos anidados
-          //
-          // ⚠️ Esta ruta se eliminará cuando se integre
-          // correctamente al módulo final.
-          // -------------------------------------------------------------
           StatefulShellBranch(
             routes: [
               GoRoute(
                 path: '/customers',
-                builder: (context, state) => const CustomersPage(),
+                builder: (context, state) {
+                  debugPrint('[Router] building CustomersPage');
+                  return const CustomersPage();
+                },
               ),
             ],
           ),
@@ -208,11 +241,26 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           // -------------------------------------------------------------
           // 🧪 PROJECTS (VISTA DE PRUEBA)
           // -------------------------------------------------------------
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/projects',
+                builder: (context, state) {
+                  debugPrint('[Router] building ProjectsPage');
+                  return const ProjectsPage();
+                },
+              ),
+            ],
+          ),
+
+          // -------------------------------------------------------------
+          // 🧪 USERS (VISTA DE PRUEBA)
+          // -------------------------------------------------------------
           // Esta sección es SOLO PARA TESTEAR:
-          // - API projects
+          // - API users usando dioClientsProvider.login
           // - cache SQLite
           // - lectura de rawJson
-          // - lectura de campos anidados como list_workOrder_id[0].name
+          // - arrays y estructuras anidadas
           //
           // ⚠️ Esta ruta se eliminará cuando se integre
           // correctamente al módulo final.
@@ -220,8 +268,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           StatefulShellBranch(
             routes: [
               GoRoute(
-                path: '/projects',
-                builder: (context, state) => const ProjectsPage(),
+                path: '/users',
+                builder: (context, state) {
+                  debugPrint('[Router] building UsersPage');
+                  return const UsersPage();
+                },
               ),
             ],
           ),

@@ -2,20 +2,67 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../app/di/providers.dart'; // loggerProvider
-import '../../../home/presentation/providers/home_providers.dart';
+import '../../../../app/di/providers.dart';
 import '../../../../core/network/internet_status.dart';
+
+import '../../../home/presentation/providers/home_providers.dart';
 import '../../../home/presentation/widgets/offline_banner_in_appbar.dart';
 
-class WorkOrdersPage extends ConsumerWidget {
+import '../../../users/presentation/providers/users_providers.dart';
+import '../../../customers/presentation/state/customers_controller.dart';
+import '../../../projects/presentation/providers/projects_providers.dart';
+
+class WorkOrdersPage extends ConsumerStatefulWidget {
   const WorkOrdersPage({super.key});
 
+  @override
+  ConsumerState<WorkOrdersPage> createState() => _WorkOrdersPageState();
+}
+
+class _WorkOrdersPageState extends ConsumerState<WorkOrdersPage> {
   static const _bg = Color(0xFFF6F7FB);
   static const _brand = Color(0xFF0B2A4A);
   static const _softBlue = Color(0xFFE7EEF8);
 
+  bool _didBootstrapCatalogs = false;
+
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    if (_didBootstrapCatalogs) return;
+    _didBootstrapCatalogs = true;
+
+    Future.microtask(() async {
+      final logger = ref.read(loggerProvider);
+
+      try {
+        logger.i('[WorkOrdersPage] Iniciando carga de catálogos...');
+
+        await Future.wait([
+          ref.read(usersControllerProvider.notifier).loadCacheThenRemote(),
+          ref.read(customersControllerProvider.notifier).loadCacheThenRemote(),
+          ref.read(projectsControllerProvider.notifier).loadCacheThenRemote(),
+        ]);
+
+        final usersState = ref.read(usersControllerProvider);
+        final customersState = ref.read(customersControllerProvider);
+        final projectsState = ref.read(projectsControllerProvider);
+
+        logger.i(
+          '[WorkOrdersPage] Catálogos cargados | '
+          'users=${usersState.users.length} (cache=${usersState.fromCache}) | '
+          'customers=${customersState.customers.length} (cache=${customersState.fromCache}) | '
+          'projects=${projectsState.projects.length} (cache=${projectsState.fromCache})',
+        );
+      } catch (e) {
+        logger.e('[WorkOrdersPage] Error cargando catálogos: $e');
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final state = ref.watch(homeControllerProvider);
     final notifier = ref.read(homeControllerProvider.notifier);
     final logger = ref.watch(loggerProvider);
@@ -56,15 +103,41 @@ class WorkOrdersPage extends ConsumerWidget {
                 error: (_, __) => false,
               );
 
+          logger.i('[WorkOrdersPage] Refresh manual. offlineNow=$offlineNow');
+
           await notifier.fetchMyWorkOrders(skipRemote: offlineNow);
+
+          try {
+            logger.i('[WorkOrdersPage] Refrescando catálogos...');
+
+            await Future.wait([
+              ref.read(usersControllerProvider.notifier).loadCacheThenRemote(),
+              ref
+                  .read(customersControllerProvider.notifier)
+                  .loadCacheThenRemote(),
+              ref
+                  .read(projectsControllerProvider.notifier)
+                  .loadCacheThenRemote(),
+            ]);
+
+            final usersState = ref.read(usersControllerProvider);
+            final customersState = ref.read(customersControllerProvider);
+            final projectsState = ref.read(projectsControllerProvider);
+
+            logger.i(
+              '[WorkOrdersPage] Catálogos tras refresh | '
+              'users=${usersState.users.length} | '
+              'customers=${customersState.customers.length} | '
+              'projects=${projectsState.projects.length}',
+            );
+          } catch (e) {
+            logger.e('[WorkOrdersPage] Error refrescando catálogos: $e');
+          }
         },
         child: ListView(
           physics: const AlwaysScrollableScrollPhysics(),
           padding: EdgeInsets.zero,
           children: [
-            // ============================
-            // Hero header
-            // ============================
             Stack(
               children: [
                 Container(
@@ -147,7 +220,7 @@ class WorkOrdersPage extends ConsumerWidget {
                       state.workOrdersError!.isNotEmpty)
                     _ErrorCard(message: state.workOrdersError!)
                   else if (list.isEmpty)
-                    _EmptyCard(
+                    const _EmptyCard(
                       title: 'Sin Work Orders',
                       subtitle: 'No tienes Work Orders asignadas.',
                     )
@@ -299,6 +372,7 @@ class WorkOrdersPage extends ConsumerWidget {
         .split(RegExp(r'\s+'))
         .where((e) => e.isNotEmpty)
         .toList();
+
     if (parts.isEmpty) return '?';
 
     final first = parts[0].isNotEmpty ? parts[0][0] : '';

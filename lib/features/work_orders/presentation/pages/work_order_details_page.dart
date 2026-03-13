@@ -168,7 +168,6 @@ class WorkOrderDetailsPage extends ConsumerWidget {
                 ),
               ],
             ),
-
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 10, 16, 12),
               child: Container(
@@ -208,7 +207,6 @@ class WorkOrderDetailsPage extends ConsumerWidget {
                 ),
               ),
             ),
-
             Expanded(
               child: TabBarView(
                 children: [
@@ -345,11 +343,15 @@ class _FieldRow extends StatelessWidget {
     required this.icon,
     required this.label,
     required this.value,
+    this.onTap,
+    this.showChevron = false,
   });
 
   final IconData icon;
   final String label;
   final String value;
+  final VoidCallback? onTap;
+  final bool showChevron;
 
   static const _brand = Color(0xFF0B2A4A);
 
@@ -357,61 +359,79 @@ class _FieldRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final v = value.trim().isEmpty ? '—' : value.trim();
 
+    final child = Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: Colors.black.withValues(alpha: 0.05)),
+        boxShadow: [
+          BoxShadow(
+            blurRadius: 14,
+            offset: const Offset(0, 8),
+            color: Colors.black.withValues(alpha: 0.04),
+          ),
+        ],
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              color: const Color(0xFFE7EEF8),
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: Icon(icon, color: _brand, size: 18),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w900,
+                    color: _brand,
+                    fontSize: 13,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  v,
+                  style: TextStyle(
+                    color: _brand.withValues(alpha: 0.85),
+                    height: 1.3,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (showChevron) ...[
+            const SizedBox(width: 10),
+            Icon(
+              Icons.chevron_right_rounded,
+              color: _brand.withValues(alpha: 0.55),
+            ),
+          ],
+        ],
+      ),
+    );
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
-      child: Container(
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(18),
-          border: Border.all(color: Colors.black.withValues(alpha: 0.05)),
-          boxShadow: [
-            BoxShadow(
-              blurRadius: 14,
-              offset: const Offset(0, 8),
-              color: Colors.black.withValues(alpha: 0.04),
-            ),
-          ],
-        ),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              width: 36,
-              height: 36,
-              decoration: BoxDecoration(
-                color: const Color(0xFFE7EEF8),
-                borderRadius: BorderRadius.circular(14),
-              ),
-              child: Icon(icon, color: _brand, size: 18),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    label,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w900,
-                      color: _brand,
-                      fontSize: 13,
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    v,
-                    style: TextStyle(
-                      color: _brand.withValues(alpha: 0.85),
-                      height: 1.3,
-                    ),
-                  ),
-                ],
+      child: onTap == null
+          ? child
+          : Material(
+              color: Colors.transparent,
+              child: InkWell(
+                borderRadius: BorderRadius.circular(18),
+                onTap: onTap,
+                child: child,
               ),
             ),
-          ],
-        ),
-      ),
     );
   }
 }
@@ -437,7 +457,7 @@ class _GeneralTab extends ConsumerWidget {
       users: users,
     );
 
-    final customerText = _customerToText(
+    final customerResolved = _resolveCustomer(
       ref: ref,
       customerId: wo['sel_customer_id'],
       customers: customers,
@@ -461,7 +481,14 @@ class _GeneralTab extends ConsumerWidget {
         _FieldRow(
           icon: Icons.business_rounded,
           label: 'Cliente',
-          value: customerText,
+          value: customerResolved.displayText,
+          showChevron: customerResolved.customer != null,
+          onTap: customerResolved.customer == null
+              ? null
+              : () => _showCustomerBottomSheet(
+                  context: context,
+                  customer: customerResolved.customer!,
+                ),
         ),
         _FieldRow(
           icon: Icons.account_tree_rounded,
@@ -485,6 +512,165 @@ class _GeneralTab extends ConsumerWidget {
         ),
       ],
     );
+  }
+
+  void _showCustomerBottomSheet({
+    required BuildContext context,
+    required Map<String, dynamic> customer,
+  }) {
+    final title = _resolveCustomerDisplayName(customer);
+    final rows = _buildCustomerRows(customer);
+
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) {
+        return Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          child: SafeArea(
+            top: false,
+            child: DraggableScrollableSheet(
+              expand: false,
+              initialChildSize: 0.72,
+              minChildSize: 0.45,
+              maxChildSize: 0.92,
+              builder: (context, scrollController) {
+                return Column(
+                  children: [
+                    const SizedBox(height: 10),
+                    Container(
+                      width: 48,
+                      height: 5,
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 10),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 42,
+                            height: 42,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFE7EEF8),
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                            child: const Icon(
+                              Icons.business_rounded,
+                              color: WorkOrderDetailsPage._brand,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              title.isEmpty ? 'Cliente' : title,
+                              style: const TextStyle(
+                                fontSize: 17,
+                                fontWeight: FontWeight.w900,
+                                color: WorkOrderDetailsPage._brand,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const Divider(height: 1),
+                    Expanded(
+                      child: rows.isEmpty
+                          ? const Center(
+                              child: Text('No hay información del cliente.'),
+                            )
+                          : ListView.separated(
+                              controller: scrollController,
+                              padding: const EdgeInsets.all(16),
+                              itemCount: rows.length,
+                              separatorBuilder: (_, __) =>
+                                  const SizedBox(height: 10),
+                              itemBuilder: (context, index) {
+                                final row = rows[index];
+                                return _ModalInfoRow(
+                                  label: row.label,
+                                  value: row.value,
+                                );
+                              },
+                            ),
+                    ),
+                  ],
+                );
+              },
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  List<_DisplayRow> _buildCustomerRows(Map<String, dynamic> customer) {
+    final rows = <_DisplayRow>[];
+
+    void addRow(String label, dynamic value) {
+      final text = _stringifyValue(value);
+      if (text.isEmpty) return;
+      rows.add(_DisplayRow(label: label, value: text));
+    }
+
+    addRow('ID', customer['_id']);
+    addRow('Nombre', customer['text_custName_id']);
+    addRow('Nombre empresa', customer['text_companyName_id']);
+    addRow('Primer nombre', customer['text_firstName_id']);
+    addRow('Segundo nombre', customer['text_secondName_id']);
+    addRow('Apellido', customer['text_lastName_id']);
+    addRow('Segundo apellido', customer['text_secondLastName_id']);
+    addRow('Correo', customer['email']);
+    addRow('Identificación', customer['identification']);
+    addRow('Teléfono', customer['phone']);
+    addRow('Celular', customer['mobile']);
+    addRow('Ciudad', customer['text_city_id']);
+    addRow('Departamento / Estado', customer['text_state_id']);
+    addRow('Dirección', customer['text_address_id']);
+    addRow('Tipo cliente', customer['text_customerType_id']);
+    addRow('Estado', customer['estado']);
+    addRow('Nombre genérico', customer['name']);
+    addRow('Nombre alterno', customer['nombre']);
+
+    for (final entry in customer.entries) {
+      final key = entry.key;
+      final alreadyIncluded = rows.any((row) => row.label == key);
+      if (alreadyIncluded) continue;
+
+      if (key == 'cachedAt') continue;
+
+      final text = _stringifyValue(entry.value);
+      if (text.isEmpty) continue;
+
+      rows.add(_DisplayRow(label: key, value: text));
+    }
+
+    return rows;
+  }
+
+  String _stringifyValue(dynamic value) {
+    if (value == null) return '';
+
+    if (value is List) {
+      final items = value
+          .map((e) => e == null ? '' : e.toString().trim())
+          .where((e) => e.isNotEmpty)
+          .toList();
+      return items.join(', ');
+    }
+
+    if (value is Map) {
+      return value.toString();
+    }
+
+    return value.toString().trim();
   }
 
   String _s(dynamic v) => (v ?? '').toString().trim();
@@ -521,28 +707,39 @@ class _GeneralTab extends ConsumerWidget {
     return result;
   }
 
-  String _customerToText({
+  _ResolvedCustomer _resolveCustomer({
     required WidgetRef ref,
     required dynamic customerId,
     required List<Map<String, dynamic>> customers,
   }) {
     final logger = ref.watch(loggerProvider);
     final id = _s(customerId);
-    if (id.isEmpty) return '';
 
-    final customerMap = <String, String>{};
-
-    for (final customer in customers) {
-      final customerId = (customer['_id'] ?? '').toString().trim();
-      if (customerId.isEmpty) continue;
-
-      final name = _resolveCustomerDisplayName(customer);
-      customerMap[customerId] = name.isEmpty ? customerId : name;
+    if (id.isEmpty) {
+      return const _ResolvedCustomer(displayText: '', customer: null);
     }
 
-    final result = customerMap[id] ?? id;
-    logger.i('[_GeneralTab][customers] customerId=$id -> $result');
-    return result;
+    Map<String, dynamic>? foundCustomer;
+    for (final customer in customers) {
+      final currentId = (customer['_id'] ?? '').toString().trim();
+      if (currentId == id) {
+        foundCustomer = customer;
+        break;
+      }
+    }
+
+    final displayText = foundCustomer == null
+        ? id
+        : (_resolveCustomerDisplayName(foundCustomer).isEmpty
+              ? id
+              : _resolveCustomerDisplayName(foundCustomer));
+
+    logger.i(
+      '[_GeneralTab][customers] customerId=$id -> displayText=$displayText '
+      '| found=${foundCustomer != null}',
+    );
+
+    return _ResolvedCustomer(displayText: displayText, customer: foundCustomer);
   }
 
   String _projectToText({
@@ -813,4 +1010,61 @@ class _EvidenceTab extends StatelessWidget {
       ],
     );
   }
+}
+
+class _ModalInfoRow extends StatelessWidget {
+  const _ModalInfoRow({required this.label, required this.value});
+
+  final String label;
+  final String value;
+
+  static const _brand = Color(0xFF0B2A4A);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF6F7FB),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.black.withValues(alpha: 0.05)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: TextStyle(
+              color: _brand.withValues(alpha: 0.65),
+              fontWeight: FontWeight.w800,
+              fontSize: 12,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            value,
+            style: const TextStyle(
+              color: _brand,
+              fontWeight: FontWeight.w700,
+              height: 1.3,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _DisplayRow {
+  const _DisplayRow({required this.label, required this.value});
+
+  final String label;
+  final String value;
+}
+
+class _ResolvedCustomer {
+  const _ResolvedCustomer({required this.displayText, required this.customer});
+
+  final String displayText;
+  final Map<String, dynamic>? customer;
 }

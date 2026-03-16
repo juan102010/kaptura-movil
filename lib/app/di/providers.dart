@@ -25,6 +25,7 @@ import '../../core/network/internet_monitor.dart';
 import '../../core/network/internet_status.dart';
 import 'package:local_auth/local_auth.dart';
 import '../../core/services/biometric_service.dart';
+import '../../core/services/get_signed_download_url.dart';
 
 final loggerProvider = Provider<Logger>((ref) => Logger());
 
@@ -122,4 +123,9 @@ final internetMonitorProvider = Provider<InternetMonitor>((ref) {
 final internetStatusProvider = StreamProvider<InternetStatus>((ref) {
   final monitor = ref.watch(internetMonitorProvider);
   return monitor.stream;
+});
+final signedDownloadUrlServiceProvider = Provider<SignedDownloadUrlService>((
+  ref,
+) {
+  return SignedDownloadUrlService(ref.read(dioClientsProvider).api);
 });

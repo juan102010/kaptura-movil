@@ -35,7 +35,6 @@ class HomeLocalDataSourceImpl implements HomeLocalDataSource {
               final assigned = e['text_assigned_id'];
               final assignedList = _normalizeAssignedIds(assigned);
 
-              // ✅ NUEVO: guardar TODO el objeto como JSON
               final rawJson = _safeEncodeMap(e);
 
               // ✅ NUEVO: fechas (para filtro "hoy")

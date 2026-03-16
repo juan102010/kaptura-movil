@@ -95,30 +95,6 @@ class AppScaffoldWithNav extends StatelessWidget {
                     icon: Icons.settings_outlined,
                     selectedIcon: Icons.settings_rounded,
                   ),
-
-                  // 3) Customers
-                  _navItem(
-                    selected: current == 3,
-                    label: 'Customers',
-                    icon: Icons.people_outline,
-                    selectedIcon: Icons.people_rounded,
-                  ),
-
-                  // 4) Projects
-                  _navItem(
-                    selected: current == 4,
-                    label: 'Projects',
-                    icon: Icons.folder_open_outlined,
-                    selectedIcon: Icons.folder_rounded,
-                  ),
-
-                  // 5) Users
-                  _navItem(
-                    selected: current == 5,
-                    label: 'Users',
-                    icon: Icons.person_outline,
-                    selectedIcon: Icons.person,
-                  ),
                 ],
               ),
             ),

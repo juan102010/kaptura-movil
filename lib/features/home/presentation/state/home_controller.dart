@@ -3,9 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../domain/entities/clock_coords.dart';
 import '../../domain/entities/home_entity.dart';
 import '../../domain/usecases/fetch_user_usecase.dart';
+import '../../domain/usecases/get_my_work_orders_usecase.dart';
+import '../../domain/usecases/get_time_reports_usecase.dart';
 import '../../domain/usecases/has_clock_in_today_usecase.dart';
 import '../../domain/usecases/toggle_clock_usecase.dart';
-import '../../domain/usecases/get_my_work_orders_usecase.dart';
 import 'home_state.dart';
 
 class HomeController extends StateNotifier<HomeState> {
@@ -14,11 +15,13 @@ class HomeController extends StateNotifier<HomeState> {
     required HasClockInTodayUsecase hasClockInTodayUsecase,
     required ToggleClockUsecase toggleClockUsecase,
     required GetMyWorkOrdersUsecase getMyWorkOrdersUsecase,
+    required GetTimeReportsUsecase getTimeReportsUsecase,
     required Future<String?> Function() getUserIdFromStorage,
   }) : _fetchUserUsecase = fetchUserUsecase,
        _hasClockInTodayUsecase = hasClockInTodayUsecase,
        _toggleClockUsecase = toggleClockUsecase,
        _getMyWorkOrdersUsecase = getMyWorkOrdersUsecase,
+       _getTimeReportsUsecase = getTimeReportsUsecase,
        _getUserIdFromStorage = getUserIdFromStorage,
        super(HomeState.initial());
 
@@ -26,6 +29,7 @@ class HomeController extends StateNotifier<HomeState> {
   final HasClockInTodayUsecase _hasClockInTodayUsecase;
   final ToggleClockUsecase _toggleClockUsecase;
   final GetMyWorkOrdersUsecase _getMyWorkOrdersUsecase;
+  final GetTimeReportsUsecase _getTimeReportsUsecase;
   final Future<String?> Function() _getUserIdFromStorage;
 
   bool get stateClock => state.user?.stateClock ?? false;
@@ -115,6 +119,8 @@ class HomeController extends StateNotifier<HomeState> {
         user: updatedUser,
         errorMessage: null,
       );
+
+      await fetchLatestTimeReport();
     } catch (e) {
       state = state.copyWith(
         status: HomeStatus.error,
@@ -125,6 +131,7 @@ class HomeController extends StateNotifier<HomeState> {
     }
   }
 
+  /// Cache siempre. Si [skipRemote] es true, NO intentamos remoto.
   Future<void> fetchMyWorkOrders({bool skipRemote = false}) async {
     state = state.copyWith(loadingWorkOrders: true, workOrdersError: null);
 
@@ -132,6 +139,7 @@ class HomeController extends StateNotifier<HomeState> {
       final userId = await _requireUserId();
       if (userId == null) return;
 
+      // 1) Cache rápido
       final cached = await _getMyWorkOrdersUsecase.getCached();
       if (cached.isNotEmpty) {
         state = state.copyWith(
@@ -156,6 +164,7 @@ class HomeController extends StateNotifier<HomeState> {
         return;
       }
 
+      // 2) Remoto filtrado (usecase ya guarda cache)
       final remoteFiltered = await _getMyWorkOrdersUsecase(userId: userId);
 
       state = state.copyWith(
@@ -176,8 +185,45 @@ class HomeController extends StateNotifier<HomeState> {
     }
   }
 
+  Future<void> fetchLatestTimeReport() async {
+    state = state.copyWith(loadingLatestTimeReport: true);
+
+    try {
+      final userId = await _requireUserId();
+      if (userId == null) {
+        state = state.copyWith(
+          loadingLatestTimeReport: false,
+          latestTimeReport: null,
+        );
+        return;
+      }
+
+      final allReports = await _getTimeReportsUsecase();
+
+      final myReports = allReports.where((report) {
+        return (report['userId'] ?? '').toString() == userId;
+      }).toList();
+
+      myReports.sort((a, b) {
+        final aDate =
+            _tryParseDate(a['atISO']) ?? DateTime.fromMillisecondsSinceEpoch(0);
+        final bDate =
+            _tryParseDate(b['atISO']) ?? DateTime.fromMillisecondsSinceEpoch(0);
+
+        return bDate.compareTo(aDate);
+      });
+
+      state = state.copyWith(
+        loadingLatestTimeReport: false,
+        latestTimeReport: myReports.isNotEmpty ? myReports.first : null,
+      );
+    } catch (_) {
+      state = state.copyWith(loadingLatestTimeReport: false);
+    }
+  }
+
   // ============================
-  // Fecha seleccionada
+  // Fecha seleccionada Work Orders
   // ============================
 
   void setSelectedWorkOrdersDate(DateTime date) {
@@ -231,6 +277,7 @@ class HomeController extends StateNotifier<HomeState> {
     DateTime selectedDate,
   ) {
     final normalized = _normalizeDate(selectedDate);
+
     final startOfDay = DateTime(
       normalized.year,
       normalized.month,
@@ -288,6 +335,7 @@ class HomeController extends StateNotifier<HomeState> {
     }
   }
 
+  // útil para pruebas
   void setUserLocal(HomeEntity user) {
     state = state.copyWith(
       status: HomeStatus.ready,

@@ -9,14 +9,16 @@ class HomeState {
     required this.savingClock,
     required this.user,
     required this.errorMessage,
-
-    // Work Orders
     required this.loadingWorkOrders,
     required this.workOrders,
     required this.todayWorkOrders,
     required this.filteredWorkOrders,
     required this.selectedWorkOrdersDate,
     required this.workOrdersError,
+
+    // NUEVO
+    required this.loadingLatestTimeReport,
+    required this.latestTimeReport,
   });
 
   final HomeStatus status;
@@ -25,16 +27,16 @@ class HomeState {
   final HomeEntity? user;
   final String? errorMessage;
 
-  // Work Orders
   final bool loadingWorkOrders;
   final List<Map<String, dynamic>> workOrders;
   final List<Map<String, dynamic>> todayWorkOrders;
-
-  // ✅ NUEVO
   final List<Map<String, dynamic>> filteredWorkOrders;
   final DateTime selectedWorkOrdersDate;
-
   final String? workOrdersError;
+
+  // NUEVO
+  final bool loadingLatestTimeReport;
+  final Map<String, dynamic>? latestTimeReport;
 
   factory HomeState.initial() {
     final today = DateTime.now();
@@ -52,6 +54,10 @@ class HomeState {
       filteredWorkOrders: const <Map<String, dynamic>>[],
       selectedWorkOrdersDate: normalizedToday,
       workOrdersError: null,
+
+      // NUEVO
+      loadingLatestTimeReport: false,
+      latestTimeReport: null,
     );
   }
 
@@ -61,13 +67,16 @@ class HomeState {
     bool? savingClock,
     HomeEntity? user,
     String? errorMessage,
-
     bool? loadingWorkOrders,
     List<Map<String, dynamic>>? workOrders,
     List<Map<String, dynamic>>? todayWorkOrders,
     List<Map<String, dynamic>>? filteredWorkOrders,
     DateTime? selectedWorkOrdersDate,
     String? workOrdersError,
+
+    // NUEVO
+    bool? loadingLatestTimeReport,
+    Map<String, dynamic>? latestTimeReport,
   }) {
     return HomeState(
       status: status ?? this.status,
@@ -82,6 +91,9 @@ class HomeState {
       selectedWorkOrdersDate:
           selectedWorkOrdersDate ?? this.selectedWorkOrdersDate,
       workOrdersError: workOrdersError,
+      loadingLatestTimeReport:
+          loadingLatestTimeReport ?? this.loadingLatestTimeReport,
+      latestTimeReport: latestTimeReport ?? this.latestTimeReport,
     );
   }
 }

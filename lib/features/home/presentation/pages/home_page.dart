@@ -3,15 +3,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../providers/home_providers.dart';
 import '../state/home_state.dart';
-import '../widgets/work_orders_list_widget.dart';
 import '../widgets/offline_banner_in_appbar.dart';
+import '../widgets/work_orders_list_widget.dart';
 
 import '../../domain/entities/clock_coords.dart';
 
-import '../../../../core/services/location_service.dart';
+import '../../../../app/di/providers.dart';
 import '../../../../core/network/internet_status.dart';
-
-import '../../../../app/di/providers.dart'; // locationServiceProvider
+import '../../../../core/services/location_service.dart';
 
 class HomePage extends ConsumerStatefulWidget {
   const HomePage({super.key});
@@ -32,7 +31,6 @@ class _HomePageState extends ConsumerState<HomePage> {
       Future.microtask(() async {
         final notifier = ref.read(homeControllerProvider.notifier);
 
-        // ✅ MÁS SEGURO: si aún no sabemos, asumimos OFFLINE
         final internetAsync = ref.read(homeInternetStatusProvider);
         final isOffline = internetAsync.when(
           data: (status) => status == InternetStatus.offline,
@@ -43,19 +41,17 @@ class _HomePageState extends ConsumerState<HomePage> {
         await notifier.fetchUser();
         if (!mounted) return;
 
-        // ✅ Work Orders: cache siempre, remoto solo si online confirmado
+        await notifier.fetchLatestTimeReport();
+        if (!mounted) return;
+
         await notifier.fetchMyWorkOrders(skipRemote: isOffline);
         if (!mounted) return;
 
-        // ✅ Pedir permisos al iniciar (flujo pro)
         await _ensureLocationPermissionOnStart();
       });
     }
   }
 
-  // ============================
-  // Flujo PRO permisos al iniciar
-  // ============================
   Future<void> _ensureLocationPermissionOnStart() async {
     final location = ref.read(locationServiceProvider);
 
@@ -129,9 +125,6 @@ class _HomePageState extends ConsumerState<HomePage> {
     }
   }
 
-  // ============================
-  // Dialog Confirm Clock Out
-  // ============================
   Future<bool> _confirmClockOut() async {
     final res = await showDialog<bool>(
       context: context,
@@ -154,9 +147,6 @@ class _HomePageState extends ConsumerState<HomePage> {
     return res == true;
   }
 
-  // ============================
-  // Dialog Reason obligatorio
-  // ============================
   Future<String?> _askReason() async {
     return showDialog<String?>(
       context: context,
@@ -181,6 +171,17 @@ class _HomePageState extends ConsumerState<HomePage> {
     );
   }
 
+  String _mapClockType(String? type) {
+    switch (type) {
+      case 'clock_in':
+        return 'Último registro: Clock In';
+      case 'clock_out':
+        return 'Último registro: Clock Out';
+      default:
+        return 'Último registro';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(homeControllerProvider);
@@ -191,13 +192,13 @@ class _HomePageState extends ConsumerState<HomePage> {
 
     final userName = state.user?.name ?? 'Usuario';
     final stateClock = state.user?.stateClock ?? false;
+    final latestTimeReport = state.latestTimeReport;
 
-    // ✅ MÁS SEGURO: si aún no sabemos, asumimos OFFLINE
     final internetAsync = ref.watch(homeInternetStatusProvider);
 
     final isOffline = internetAsync.when(
       data: (status) => status == InternetStatus.offline,
-      loading: () => false, // 👈 mientras carga, no bloqueamos
+      loading: () => false,
       error: (_, __) => false,
     );
 
@@ -209,7 +210,7 @@ class _HomePageState extends ConsumerState<HomePage> {
       backgroundColor: const Color(0xFFF6F7FB),
       appBar: AppBar(
         elevation: 0,
-        backgroundColor: const Color(0xFF0B2A4A), // azul oscuro tipo Kaptura
+        backgroundColor: const Color(0xFF0B2A4A),
         title: const Text(
           'Kaptura',
           style: TextStyle(fontWeight: FontWeight.w800, color: Colors.white),
@@ -233,22 +234,15 @@ class _HomePageState extends ConsumerState<HomePage> {
               );
 
           await notifier.fetchUser();
+          await notifier.fetchLatestTimeReport();
           await notifier.fetchMyWorkOrders(skipRemote: offlineNow);
         },
         child: ListView(
           physics: const AlwaysScrollableScrollPhysics(),
           padding: EdgeInsets.zero,
           children: [
-            // ============================
-            // Header tipo “hero”
-            // ============================
             _KapturaHeader(userName: userName, isOffline: isOffline),
-
             const SizedBox(height: 14),
-
-            // ============================
-            // Contenido principal
-            // ============================
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Column(
@@ -261,9 +255,6 @@ class _HomePageState extends ConsumerState<HomePage> {
                       child: _ErrorCard(message: state.errorMessage!),
                     ),
 
-                  // ============================
-                  // Card Clock (botón pro)
-                  // ============================
                   _SectionCard(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -277,9 +268,9 @@ class _HomePageState extends ConsumerState<HomePage> {
                                 color: const Color(0xFFE7EEF8),
                                 borderRadius: BorderRadius.circular(12),
                               ),
-                              child: Icon(
+                              child: const Icon(
                                 Icons.access_time_rounded,
-                                color: const Color(0xFF0B2A4A),
+                                color: Color(0xFF0B2A4A),
                               ),
                             ),
                             const SizedBox(width: 12),
@@ -319,6 +310,72 @@ class _HomePageState extends ConsumerState<HomePage> {
                               ),
                           ],
                         ),
+
+                        if (latestTimeReport != null) ...[
+                          const SizedBox(height: 12),
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFF6F7FB),
+                              borderRadius: BorderRadius.circular(14),
+                              border: Border.all(
+                                color: Colors.black.withValues(alpha: 0.05),
+                              ),
+                            ),
+                            child: Row(
+                              children: [
+                                Container(
+                                  width: 34,
+                                  height: 34,
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFE7EEF8),
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: Icon(
+                                    (latestTimeReport['type'] == 'clock_in')
+                                        ? Icons.login_rounded
+                                        : Icons.logout_rounded,
+                                    size: 18,
+                                    color: const Color(0xFF0B2A4A),
+                                  ),
+                                ),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        _mapClockType(
+                                          latestTimeReport['type']?.toString(),
+                                        ),
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.w800,
+                                          fontSize: 13.5,
+                                          color: Color(0xFF0B2A4A),
+                                        ),
+                                      ),
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        (latestTimeReport['atLocal'] ??
+                                                'Sin hora')
+                                            .toString(),
+                                        style: TextStyle(
+                                          color: const Color(
+                                            0xFF0B2A4A,
+                                          ).withValues(alpha: 0.70),
+                                          fontSize: 12.5,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+
                         const SizedBox(height: 12),
 
                         SizedBox(
@@ -461,9 +518,6 @@ class _HomePageState extends ConsumerState<HomePage> {
 
                   const SizedBox(height: 14),
 
-                  // ============================
-                  // Header sección Work Orders
-                  // ============================
                   Row(
                     children: [
                       const Text(
@@ -518,7 +572,6 @@ class _KapturaHeader extends StatelessWidget {
           height: 150,
           decoration: const BoxDecoration(color: Color(0xFF0B2A4A)),
         ),
-        // “curva” blanca tipo onboarding
         Positioned(
           left: 0,
           right: 0,

@@ -7,6 +7,7 @@ import '../../../../core/network/internet_status.dart';
 
 import '../../../home/presentation/providers/home_providers.dart';
 import '../../../home/presentation/widgets/offline_banner_in_appbar.dart';
+import '../widgets//work_orders_date_filter_bar.dart';
 
 import '../../../users/presentation/providers/users_providers.dart';
 import '../../../customers/presentation/state/customers_controller.dart';
@@ -61,13 +62,33 @@ class _WorkOrdersPageState extends ConsumerState<WorkOrdersPage> {
     });
   }
 
+  Future<void> _pickDate(BuildContext context, DateTime initialDate) async {
+    final notifier = ref.read(homeControllerProvider.notifier);
+
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: initialDate,
+      firstDate: DateTime(2020),
+      lastDate: DateTime(2100),
+      helpText: 'Selecciona una fecha',
+      cancelText: 'Cancelar',
+      confirmText: 'Aceptar',
+    );
+
+    if (picked != null) {
+      notifier.setSelectedWorkOrdersDate(picked);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(homeControllerProvider);
     final notifier = ref.read(homeControllerProvider.notifier);
     final logger = ref.watch(loggerProvider);
 
-    final list = state.workOrders;
+    final list = state.filteredWorkOrders;
+    final selectedDate = state.selectedWorkOrdersDate;
+
     final internetAsync = ref.watch(homeInternetStatusProvider);
 
     final isOffline = internetAsync.when(
@@ -204,13 +225,18 @@ class _WorkOrdersPageState extends ConsumerState<WorkOrdersPage> {
                 ),
               ],
             ),
-
             const SizedBox(height: 12),
-
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Column(
                 children: [
+                  WorkOrdersDateFilterBar(
+                    selectedDate: selectedDate,
+                    onPrevious: notifier.goToPreviousWorkOrdersDay,
+                    onNext: notifier.goToNextWorkOrdersDay,
+                    onTapDate: () => _pickDate(context, selectedDate),
+                  ),
+                  const SizedBox(height: 12),
                   if (state.loadingWorkOrders)
                     const SizedBox(
                       height: 220,
@@ -222,7 +248,8 @@ class _WorkOrdersPageState extends ConsumerState<WorkOrdersPage> {
                   else if (list.isEmpty)
                     const _EmptyCard(
                       title: 'Sin Work Orders',
-                      subtitle: 'No tienes Work Orders asignadas.',
+                      subtitle:
+                          'No hay Work Orders para la fecha seleccionada.',
                     )
                   else
                     ListView.separated(

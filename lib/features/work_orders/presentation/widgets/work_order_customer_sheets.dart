@@ -157,6 +157,7 @@ class CredentialsNotesSheet extends ConsumerStatefulWidget {
 class _CredentialsNotesSheetState extends ConsumerState<CredentialsNotesSheet> {
   late final Map<String, TextEditingController> _controllers;
   late final Map<String, String> _originalMessages;
+  late bool _hasPendingChangesCache;
 
   @override
   void initState() {
@@ -170,6 +171,8 @@ class _CredentialsNotesSheetState extends ConsumerState<CredentialsNotesSheet> {
     _originalMessages = {
       for (final note in widget.notes) note.categoryName: note.message,
     };
+
+    _hasPendingChangesCache = false;
 
     for (final controller in _controllers.values) {
       controller.addListener(_onTextChanged);
@@ -187,10 +190,15 @@ class _CredentialsNotesSheetState extends ConsumerState<CredentialsNotesSheet> {
   }
 
   void _onTextChanged() {
-    setState(() {});
+    final nextHasChanges = _computeHasPendingChanges();
+    if (nextHasChanges != _hasPendingChangesCache) {
+      setState(() {
+        _hasPendingChangesCache = nextHasChanges;
+      });
+    }
   }
 
-  bool get _hasPendingChanges {
+  bool _computeHasPendingChanges() {
     for (final entry in _controllers.entries) {
       final category = entry.key;
       final current = entry.value.text.trim();
@@ -200,6 +208,8 @@ class _CredentialsNotesSheetState extends ConsumerState<CredentialsNotesSheet> {
     }
     return false;
   }
+
+  bool get _hasPendingChanges => _hasPendingChangesCache;
 
   void _handleSave() {
     final logger = ref.read(loggerProvider);
@@ -224,7 +234,9 @@ class _CredentialsNotesSheetState extends ConsumerState<CredentialsNotesSheet> {
       }
     }
 
-    setState(() {});
+    setState(() {
+      _hasPendingChangesCache = false;
+    });
   }
 
   @override
@@ -471,17 +483,28 @@ class EditableServiceCategoryCard extends StatelessWidget {
   }
 }
 
-class SignedImagePreview extends ConsumerWidget {
+class SignedImagePreview extends ConsumerStatefulWidget {
   const SignedImagePreview({super.key, required this.imageData});
 
   final Map<String, dynamic> imageData;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final future = _resolveUrl(ref);
+  ConsumerState<SignedImagePreview> createState() => _SignedImagePreviewState();
+}
 
+class _SignedImagePreviewState extends ConsumerState<SignedImagePreview> {
+  late Future<String?> _future;
+
+  @override
+  void initState() {
+    super.initState();
+    _future = _resolveUrl();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return FutureBuilder<String?>(
-      future: future,
+      future: _future,
       builder: (context, snapshot) {
         final url = snapshot.data;
 
@@ -555,14 +578,14 @@ class SignedImagePreview extends ConsumerWidget {
     );
   }
 
-  Future<String?> _resolveUrl(WidgetRef ref) async {
+  Future<String?> _resolveUrl() async {
     final service = ref.read(signedDownloadUrlServiceProvider);
 
     try {
       final signedUrl = await service.getSignedDownloadUrl({
-        'key': imageData['key'],
-        '_id': imageData['_id'],
-        'filename': imageData['key']?.toString().split('/').last,
+        'key': widget.imageData['key'],
+        '_id': widget.imageData['_id'],
+        'filename': widget.imageData['key']?.toString().split('/').last,
         'disposition': 'inline',
       });
 
@@ -573,7 +596,7 @@ class SignedImagePreview extends ConsumerWidget {
       // fallback abajo
     }
 
-    final fallback = (imageData['url'] ?? '').toString().trim();
+    final fallback = (widget.imageData['url'] ?? '').toString().trim();
     return fallback.isEmpty ? null : fallback;
   }
 }

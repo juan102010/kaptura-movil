@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -16,8 +15,6 @@ class CustomerBottomSheetHelpers {
     required List<DisplayRowData> rows,
     required List<ServiceCategoryNote> notes,
   }) {
-    final hasCredentials = notes.isNotEmpty;
-
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
@@ -98,18 +95,6 @@ class CustomerBottomSheetHelpers {
                               ),
                             ),
                           if (rows.isNotEmpty) const SizedBox(height: 4),
-                          if (hasCredentials)
-                            WorkOrderActionButtonRow(
-                              icon: Icons.key_rounded,
-                              label: 'Mostrar credenciales o notas',
-                              onTap: () {
-                                showCredentialsBottomSheet(
-                                  context: context,
-                                  title: title,
-                                  notes: notes,
-                                );
-                              },
-                            ),
                         ],
                       ),
                     ),

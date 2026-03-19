@@ -19,7 +19,8 @@ class WorkOrdersDateFilterBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final text = _formatDate(selectedDate);
+    final localSelectedDate = _normalizeLocalDate(selectedDate);
+    final text = _formatDate(localSelectedDate);
 
     return Container(
       width: double.infinity,
@@ -84,6 +85,11 @@ class WorkOrdersDateFilterBar extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  DateTime _normalizeLocalDate(DateTime date) {
+    final local = date.toLocal();
+    return DateTime(local.year, local.month, local.day);
   }
 
   String _formatDate(DateTime date) {

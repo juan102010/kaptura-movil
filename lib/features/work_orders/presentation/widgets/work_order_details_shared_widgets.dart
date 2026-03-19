@@ -216,12 +216,10 @@ class WorkOrderSection extends StatelessWidget {
   const WorkOrderSection({
     super.key,
     required this.title,
-    required this.subtitle,
     required this.children,
   });
 
   final String title;
-  final String subtitle;
   final List<Widget> children;
 
   @override
@@ -255,14 +253,6 @@ class WorkOrderSection extends StatelessWidget {
               ),
             ),
           ],
-        ),
-        const SizedBox(height: 6),
-        Text(
-          subtitle,
-          style: TextStyle(
-            color: WorkOrderDetailsColors.brand.withValues(alpha: 0.60),
-            fontSize: 12.5,
-          ),
         ),
         const SizedBox(height: 12),
         ...children,

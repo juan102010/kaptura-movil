@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../app/di/providers.dart';
 import 'work_order_customer_sheets.dart';
 import 'work_order_details_shared_widgets.dart';
+import 'work_order_history_widgets.dart';
+import 'work_order_timer_widgets.dart';
 
 class GeneralTab extends ConsumerWidget {
   const GeneralTab({
@@ -39,47 +41,61 @@ class GeneralTab extends ConsumerWidget {
       projects: projects,
     );
 
+    final customer = customerResolved.customer;
+    final customerTitle = customer == null
+        ? ''
+        : _resolveCustomerDisplayName(customer);
+    final customerRows = customer == null
+        ? <DisplayRowData>[]
+        : _buildCustomerSummaryRows(customer);
+    final customerNotes = customer == null
+        ? <ServiceCategoryNote>[]
+        : _extractServiceNotes(customer);
+
     return WorkOrderSection(
       title: 'Información General',
-      subtitle: 'Datos principales de la Work Order.',
       children: [
-        WorkOrderFieldRow(
-          icon: Icons.title_rounded,
-          label: 'Nombre',
-          value: WorkOrderDetailsUiUtils.s(wo['text_nameWorkOrder_id']),
-        ),
         WorkOrderFieldRow(
           icon: Icons.business_rounded,
           label: 'Cliente',
           value: customerResolved.displayText,
-          showChevron: customerResolved.customer != null,
-          onTap: customerResolved.customer == null
+          showChevron: customer != null,
+          onTap: customer == null
               ? null
               : () {
-                  final customer = customerResolved.customer!;
-                  final title = _resolveCustomerDisplayName(customer);
-                  final rows = _buildCustomerSummaryRows(customer);
-                  final notes = _extractServiceNotes(customer);
-
                   CustomerBottomSheetHelpers.showCustomerBottomSheet(
                     context: context,
                     ref: ref,
                     customer: customer,
-                    title: title,
-                    rows: rows,
-                    notes: notes,
+                    title: customerTitle,
+                    rows: customerRows,
+                    notes: customerNotes,
                   );
                 },
         ),
+
+        if (customer != null && customerNotes.isNotEmpty)
+          WorkOrderActionButtonRow(
+            icon: Icons.key_rounded,
+            label: 'Mostrar credenciales o notas',
+            onTap: () {
+              CustomerBottomSheetHelpers.showCredentialsBottomSheet(
+                context: context,
+                title: customerTitle,
+                notes: customerNotes,
+              );
+            },
+          ),
+
         WorkOrderFieldRow(
           icon: Icons.account_tree_rounded,
           label: 'Proyecto',
           value: projectText,
         ),
         WorkOrderFieldRow(
-          icon: Icons.category_rounded,
-          label: 'Tipo',
-          value: WorkOrderDetailsUiUtils.s(wo['sel_type_id']),
+          icon: Icons.groups_rounded,
+          label: 'Asignado a',
+          value: assignedText,
         ),
         WorkOrderFieldRow(
           icon: Icons.layers_rounded,
@@ -87,9 +103,9 @@ class GeneralTab extends ConsumerWidget {
           value: WorkOrderDetailsUiUtils.s(wo['sel_class_id']),
         ),
         WorkOrderFieldRow(
-          icon: Icons.groups_rounded,
-          label: 'Asignado a',
-          value: assignedText,
+          icon: Icons.category_rounded,
+          label: 'Tipo',
+          value: WorkOrderDetailsUiUtils.s(wo['sel_type_id']),
         ),
       ],
     );
@@ -351,24 +367,58 @@ class GeneralTab extends ConsumerWidget {
   }
 }
 
-class TimeTab extends StatelessWidget {
+class TimeTab extends StatefulWidget {
   const TimeTab({super.key, required this.wo});
 
   final Map<String, dynamic> wo;
 
   @override
-  Widget build(BuildContext context) {
-    final start = WorkOrderDetailsUiUtils.s(wo['date_start_id']);
-    final end = WorkOrderDetailsUiUtils.s(wo['date_end_id']);
-    final elapsed = wo['num_elapsedMs_id']?.toString() ?? '';
+  State<TimeTab> createState() => _TimeTabState();
+}
 
-    final history = wo['text_dateTime_id'];
-    final historyCount = (history is List) ? history.length.toString() : '0';
+class _TimeTabState extends State<TimeTab> {
+  late Map<String, dynamic> _woLocal;
+
+  @override
+  void initState() {
+    super.initState();
+    _woLocal = Map<String, dynamic>.from(widget.wo);
+  }
+
+  @override
+  void didUpdateWidget(covariant TimeTab oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.wo.toString() != widget.wo.toString()) {
+      _woLocal = Map<String, dynamic>.from(widget.wo);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final workOrderId = WorkOrderDetailsUiUtils.s(_woLocal['_id']);
+    final start = WorkOrderDetailsUiUtils.s(_woLocal['date_start_id']);
+    final end = WorkOrderDetailsUiUtils.s(_woLocal['date_end_id']);
+
+    final rawHistory = _woLocal['text_dateTime_id'];
+    final historyItems = rawHistory is List
+        ? rawHistory
+              .whereType<Map>()
+              .map((e) => Map<String, dynamic>.from(e))
+              .toList()
+        : <Map<String, dynamic>>[];
 
     return WorkOrderSection(
       title: 'Tiempo y Programación',
-      subtitle: 'Programación y tiempo acumulado.',
       children: [
+        WorkOrderTimerCard(
+          workOrderId: workOrderId,
+          history: historyItems,
+          onHistoryUpdated: (newHistory) {
+            setState(() {
+              _woLocal['text_dateTime_id'] = newHistory;
+            });
+          },
+        ),
         WorkOrderFieldRow(
           icon: Icons.play_circle_outline_rounded,
           label: 'Inicio',
@@ -379,22 +429,7 @@ class TimeTab extends StatelessWidget {
           label: 'Fin',
           value: end,
         ),
-        WorkOrderFieldRow(
-          icon: Icons.timer_outlined,
-          label: 'Tiempo acumulado (ms)',
-          value: elapsed,
-        ),
-        WorkOrderFieldRow(
-          icon: Icons.history_rounded,
-          label: 'Historial (registros)',
-          value: historyCount,
-        ),
-        const SizedBox(height: 4),
-        const WorkOrderFieldRow(
-          icon: Icons.pending_actions_rounded,
-          label: 'Timer',
-          value: 'Pendiente: play / pause (se implementa después).',
-        ),
+        WorkOrderHistorySummaryRow(history: historyItems),
       ],
     );
   }
@@ -409,7 +444,6 @@ class TechTab extends StatelessWidget {
   Widget build(BuildContext context) {
     return WorkOrderSection(
       title: 'Detalles Técnicos',
-      subtitle: 'Notas, tareas y pendientes.',
       children: [
         WorkOrderFieldRow(
           icon: Icons.description_outlined,
@@ -440,7 +474,6 @@ class LocationTab extends StatelessWidget {
   Widget build(BuildContext context) {
     return WorkOrderSection(
       title: 'Ubicación',
-      subtitle: 'Lugar y logística del trabajo.',
       children: [
         WorkOrderFieldRow(
           icon: Icons.location_on_outlined,
@@ -461,7 +494,6 @@ class PartsTab extends StatelessWidget {
   Widget build(BuildContext context) {
     return WorkOrderSection(
       title: 'Partes / Repuestos',
-      subtitle: 'Control de solicitudes y entregas.',
       children: [
         WorkOrderFieldRow(
           icon: Icons.inventory_2_outlined,
@@ -500,7 +532,6 @@ class EvidenceTab extends StatelessWidget {
 
     return WorkOrderSection(
       title: 'Evidencias',
-      subtitle: 'Documentación e imágenes asociadas.',
       children: [
         WorkOrderFieldRow(
           icon: Icons.image_outlined,

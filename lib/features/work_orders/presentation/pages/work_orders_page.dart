@@ -64,10 +64,15 @@ class _WorkOrdersPageState extends ConsumerState<WorkOrdersPage> {
 
   Future<void> _pickDate(BuildContext context, DateTime initialDate) async {
     final notifier = ref.read(homeControllerProvider.notifier);
+    final localInitialDate = initialDate.toLocal();
 
     final picked = await showDatePicker(
       context: context,
-      initialDate: initialDate,
+      initialDate: DateTime(
+        localInitialDate.year,
+        localInitialDate.month,
+        localInitialDate.day,
+      ),
       firstDate: DateTime(2020),
       lastDate: DateTime(2100),
       helpText: 'Selecciona una fecha',
@@ -76,7 +81,7 @@ class _WorkOrdersPageState extends ConsumerState<WorkOrdersPage> {
     );
 
     if (picked != null) {
-      notifier.setSelectedWorkOrdersDate(picked);
+      notifier.setSelectedWorkOrdersDate(picked.toLocal());
     }
   }
 
@@ -87,7 +92,7 @@ class _WorkOrdersPageState extends ConsumerState<WorkOrdersPage> {
     final logger = ref.watch(loggerProvider);
 
     final list = state.filteredWorkOrders;
-    final selectedDate = state.selectedWorkOrdersDate;
+    final selectedDate = state.selectedWorkOrdersDate.toLocal();
 
     final internetAsync = ref.watch(homeInternetStatusProvider);
 

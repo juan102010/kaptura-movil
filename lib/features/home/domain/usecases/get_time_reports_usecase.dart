@@ -1,3 +1,4 @@
+import '../entities/time_report_entity.dart';
 import '../repositories/home_repository.dart';
 
 class GetTimeReportsUsecase {
@@ -5,7 +6,7 @@ class GetTimeReportsUsecase {
 
   final HomeRepository _repository;
 
-  Future<List<Map<String, dynamic>>> call() {
+  Future<List<TimeReportEntity>> call() {
     return _repository.getTimeReports();
   }
 }

@@ -1,7 +1,10 @@
+import '../../../work_orders/domain/entities/work_order_entity.dart';
 import '../../domain/entities/home_entity.dart';
+import '../../domain/entities/time_report_entity.dart';
 import '../../domain/repositories/home_repository.dart';
-import '../datasources/home_remote_datasource.dart';
 import '../datasources/home_local_datasource.dart';
+import '../datasources/home_remote_datasource.dart';
+import '../models/work_order_model.dart';
 
 class HomeRepositoryImpl implements HomeRepository {
   HomeRepositoryImpl(this._remote, this._local);
@@ -20,7 +23,7 @@ class HomeRepositoryImpl implements HomeRepository {
   }
 
   @override
-  Future<List<Map<String, dynamic>>> getTimeReports() {
+  Future<List<TimeReportEntity>> getTimeReports() {
     return _remote.getTimeReports();
   }
 
@@ -41,17 +44,20 @@ class HomeRepositoryImpl implements HomeRepository {
   }
 
   @override
-  Future<List<Map<String, dynamic>>> getWorkOrdersRemote() {
+  Future<List<WorkOrderEntity>> getWorkOrdersRemote() {
     return _remote.getWorkOrders();
   }
 
   @override
-  Future<void> saveWorkOrdersCache(List<Map<String, dynamic>> rawWorkOrders) {
-    return _local.upsertWorkOrdersCache(rawWorkOrders);
+  Future<void> saveWorkOrdersCache(List<WorkOrderEntity> workOrders) {
+    final models = workOrders
+        .map((workOrder) => WorkOrderModel.fromMap(workOrder.rawData))
+        .toList();
+    return _local.upsertWorkOrdersCache(models);
   }
 
   @override
-  Future<List<Map<String, dynamic>>> getWorkOrdersCache() {
+  Future<List<WorkOrderEntity>> getWorkOrdersCache() {
     return _local.getWorkOrdersCacheRaw();
   }
 

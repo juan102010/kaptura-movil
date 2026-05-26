@@ -1,20 +1,19 @@
 import 'package:flutter/material.dart';
 
+import '../../domain/entities/work_order_time_entry_entity.dart';
 import 'work_order_details_shared_widgets.dart';
 
 class WorkOrderHistorySummaryRow extends StatelessWidget {
   const WorkOrderHistorySummaryRow({super.key, required this.history});
 
-  final List<Map<String, dynamic>> history;
+  final List<WorkOrderTimeEntryEntity> history;
 
   @override
   Widget build(BuildContext context) {
-    final count = history.length.toString();
-
     return WorkOrderFieldRow(
       icon: Icons.history_rounded,
       label: 'Historial (registros)',
-      value: count,
+      value: history.length.toString(),
       showChevron: true,
       onTap: () {
         showWorkOrderHistoryBottomSheet(context: context, history: history);
@@ -25,22 +24,20 @@ class WorkOrderHistorySummaryRow extends StatelessWidget {
 
 void showWorkOrderHistoryBottomSheet({
   required BuildContext context,
-  required List<Map<String, dynamic>> history,
+  required List<WorkOrderTimeEntryEntity> history,
 }) {
   showModalBottomSheet<void>(
     context: context,
     isScrollControlled: true,
     backgroundColor: Colors.transparent,
-    builder: (_) {
-      return WorkOrderHistorySheet(history: history);
-    },
+    builder: (_) => WorkOrderHistorySheet(history: history),
   );
 }
 
 class WorkOrderHistorySheet extends StatelessWidget {
   const WorkOrderHistorySheet({super.key, required this.history});
 
-  final List<Map<String, dynamic>> history;
+  final List<WorkOrderTimeEntryEntity> history;
 
   @override
   Widget build(BuildContext context) {
@@ -124,11 +121,12 @@ class WorkOrderHistorySheet extends StatelessWidget {
                           controller: scrollController,
                           padding: const EdgeInsets.all(16),
                           itemCount: history.length,
-                          separatorBuilder: (_, __) =>
+                          separatorBuilder: (context, index) =>
                               const SizedBox(height: 12),
                           itemBuilder: (context, index) {
-                            final item = history[index];
-                            return _WorkOrderHistoryItemCard(item: item);
+                            return _WorkOrderHistoryItemCard(
+                              item: history[index],
+                            );
                           },
                         ),
                 ),
@@ -144,18 +142,17 @@ class WorkOrderHistorySheet extends StatelessWidget {
 class _WorkOrderHistoryItemCard extends StatelessWidget {
   const _WorkOrderHistoryItemCard({required this.item});
 
-  final Map<String, dynamic> item;
+  final WorkOrderTimeEntryEntity item;
 
   @override
   Widget build(BuildContext context) {
-    final optionSelect = _stringValue(item['optionSelect']);
-    final dateInit = _stringValue(item['dateInit']);
-    final dateEnd = _stringValue(item['dateEnd']);
-    final minutes = item['minutes'];
+    final optionSelect = item.optionSelect.trim();
+    final dateInit = item.dateInit.trim();
+    final dateEnd = (item.dateEnd ?? '').trim();
 
-    final minutesText = minutes == null || minutes.toString().trim().isEmpty
+    final minutesText = item.minutes == null
         ? 'En curso'
-        : '${minutes.toString().trim()} min';
+        : '${item.minutes.toString().trim()} min';
 
     return Container(
       padding: const EdgeInsets.all(14),
@@ -221,5 +218,3 @@ class _WorkOrderHistoryItemCard extends StatelessWidget {
     );
   }
 }
-
-String _stringValue(dynamic value) => (value ?? '').toString().trim();

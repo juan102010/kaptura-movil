@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../app/di/providers.dart';
-import '../../../customers/presentation/state/customers_controller.dart';
+import '../../../customers/presentation/providers/customers_providers.dart';
 import '../../../home/presentation/providers/home_providers.dart';
 import '../../../projects/presentation/providers/projects_providers.dart';
 import '../../../users/presentation/providers/users_providers.dart';
-import '../widgets/work_order_details_tabs.dart';
 import '../widgets/work_order_details_shared_widgets.dart';
+import '../widgets/work_order_details_tabs.dart';
 
 class WorkOrderDetailsPage extends ConsumerWidget {
   const WorkOrderDetailsPage({super.key, required this.workOrderId});
@@ -16,7 +16,6 @@ class WorkOrderDetailsPage extends ConsumerWidget {
 
   static const bg = Color(0xFFF6F7FB);
   static const brand = Color(0xFF0B2A4A);
-  static const softBlue = Color(0xFFE7EEF8);
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -26,8 +25,8 @@ class WorkOrderDetailsPage extends ConsumerWidget {
     final customersState = ref.watch(customersControllerProvider);
     final projectsState = ref.watch(projectsControllerProvider);
 
-    final wo = homeState.workOrders.cast<Map<String, dynamic>?>().firstWhere(
-      (e) => (e?['_id'] ?? '').toString() == workOrderId,
+    final wo = homeState.workOrders.cast().firstWhere(
+      (item) => item.matchesId(workOrderId),
       orElse: () => null,
     );
 
@@ -39,17 +38,14 @@ class WorkOrderDetailsPage extends ConsumerWidget {
       'projects=${projectsState.projects.length}',
     );
 
-    if (wo != null) {
-      logger.i('[WorkOrderDetailsPage] WO encontrada: $wo');
-    } else {
-      logger.w('[WorkOrderDetailsPage] No se encontró WO para id=$workOrderId');
-    }
-
     if (wo == null) {
+      logger.w('[WorkOrderDetailsPage] No se encontró WO para id=$workOrderId');
       return const _WorkOrderNotFoundView();
     }
 
-    final title = WorkOrderDetailsUiUtils.s(wo['text_nameWorkOrder_id']);
+    logger.i('[WorkOrderDetailsPage] WO encontrada: ${wo.rawData}');
+
+    final title = wo.name.trim();
     final displayTitle = title.isEmpty ? '(Sin nombre)' : title;
     final initials = WorkOrderDetailsUiUtils.initialsFrom(displayTitle);
 

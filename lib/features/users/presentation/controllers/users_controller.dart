@@ -1,14 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../domain/usecases/get_users_usecase.dart';
+import '../../domain/entities/user_list_entity.dart';
 import '../../domain/repositories/users_repository.dart';
+import '../../domain/usecases/get_users_usecase.dart';
 
 class UsersState {
-  final bool loading;
-  final List<Map<String, dynamic>> users;
-  final String? error;
-  final bool fromCache;
-
   const UsersState({
     required this.loading,
     required this.users,
@@ -16,10 +12,15 @@ class UsersState {
     required this.fromCache,
   });
 
+  final bool loading;
+  final List<UserListEntity> users;
+  final String? error;
+  final bool fromCache;
+
   factory UsersState.initial() {
     return const UsersState(
       loading: false,
-      users: [],
+      users: <UserListEntity>[],
       error: null,
       fromCache: false,
     );
@@ -27,7 +28,7 @@ class UsersState {
 
   UsersState copyWith({
     bool? loading,
-    List<Map<String, dynamic>>? users,
+    List<UserListEntity>? users,
     String? error,
     bool? fromCache,
     bool clearError = false,
@@ -42,13 +43,13 @@ class UsersState {
 }
 
 class UsersController extends StateNotifier<UsersState> {
-  final GetUsersUseCase getUsersUseCase;
-  final UsersRepository usersRepository;
-
   UsersController({
     required this.getUsersUseCase,
     required this.usersRepository,
   }) : super(UsersState.initial());
+
+  final GetUsersUseCase getUsersUseCase;
+  final UsersRepository usersRepository;
 
   Future<void> loadCacheThenRemote() async {
     state = state.copyWith(loading: true, clearError: true);
@@ -82,7 +83,7 @@ class UsersController extends StateNotifier<UsersState> {
           users: cachedUsers,
           fromCache: true,
           error:
-              'No se pudo actualizar desde remoto. Mostrando datos en caché.',
+              'No se pudo actualizar desde remoto. Mostrando datos en cache.',
         );
         return;
       }
@@ -111,6 +112,10 @@ class UsersController extends StateNotifier<UsersState> {
   Future<void> clearCache() async {
     await usersRepository.clearUsers();
 
-    state = state.copyWith(users: [], fromCache: false, clearError: true);
+    state = state.copyWith(
+      users: const <UserListEntity>[],
+      fromCache: false,
+      clearError: true,
+    );
   }
 }

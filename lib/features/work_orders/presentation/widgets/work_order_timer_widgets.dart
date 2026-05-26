@@ -4,8 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../home/presentation/providers/home_providers.dart';
-import '../state/work_order_time_action_controller.dart';
-import '../../data/models/work_order_time_entry_model.dart';
+import '../../domain/entities/work_order_time_entry_entity.dart';
+import '../providers/work_order_action_providers.dart';
 import 'work_order_details_shared_widgets.dart';
 
 class WorkOrderTimerCard extends ConsumerStatefulWidget {
@@ -17,8 +17,9 @@ class WorkOrderTimerCard extends ConsumerStatefulWidget {
   });
 
   final String workOrderId;
-  final List<Map<String, dynamic>> history;
-  final void Function(List<Map<String, dynamic>> newHistory)? onHistoryUpdated;
+  final List<WorkOrderTimeEntryEntity> history;
+  final void Function(List<WorkOrderTimeEntryEntity> newHistory)?
+  onHistoryUpdated;
 
   @override
   ConsumerState<WorkOrderTimerCard> createState() => _WorkOrderTimerCardState();
@@ -28,14 +29,12 @@ class _WorkOrderTimerCardState extends ConsumerState<WorkOrderTimerCard> {
   static const Duration _businessOffset = Duration(hours: -5);
 
   Timer? _ticker;
-  late List<Map<String, dynamic>> _localHistory;
+  late List<WorkOrderTimeEntryEntity> _localHistory;
 
   @override
   void initState() {
     super.initState();
-    _localHistory = widget.history
-        .map((e) => Map<String, dynamic>.from(e))
-        .toList();
+    _localHistory = List<WorkOrderTimeEntryEntity>.from(widget.history);
     _configureTicker();
   }
 
@@ -44,9 +43,7 @@ class _WorkOrderTimerCardState extends ConsumerState<WorkOrderTimerCard> {
     super.didUpdateWidget(oldWidget);
 
     if (!_sameHistory(oldWidget.history, widget.history)) {
-      _localHistory = widget.history
-          .map((e) => Map<String, dynamic>.from(e))
-          .toList();
+      _localHistory = List<WorkOrderTimeEntryEntity>.from(widget.history);
     }
 
     _configureTicker();
@@ -59,23 +56,21 @@ class _WorkOrderTimerCardState extends ConsumerState<WorkOrderTimerCard> {
   }
 
   bool _sameHistory(
-    List<Map<String, dynamic>> a,
-    List<Map<String, dynamic>> b,
+    List<WorkOrderTimeEntryEntity> a,
+    List<WorkOrderTimeEntryEntity> b,
   ) {
     if (a.length != b.length) return false;
     for (var i = 0; i < a.length; i++) {
-      if (a[i].toString() != b[i].toString()) return false;
+      if (a[i].toMap().toString() != b[i].toMap().toString()) return false;
     }
     return true;
   }
 
-  List<WorkOrderTimeEntryModel> get _entries =>
-      _localHistory.map(WorkOrderTimeEntryModel.fromMap).toList();
+  List<WorkOrderTimeEntryEntity> get _entries => _localHistory;
 
-  WorkOrderTimeEntryModel? get _activeEntry {
+  WorkOrderTimeEntryEntity? get _activeEntry {
     for (final item in _entries.reversed) {
-      final isOpen = item.dateEnd == null || item.dateEnd!.trim().isEmpty;
-      if (isOpen) return item;
+      if (item.isOpen) return item;
     }
     return null;
   }
@@ -84,7 +79,6 @@ class _WorkOrderTimerCardState extends ConsumerState<WorkOrderTimerCard> {
 
   void _configureTicker() {
     _ticker?.cancel();
-
     if (_isRunning) {
       _ticker = Timer.periodic(const Duration(seconds: 1), (_) {
         if (mounted) setState(() {});
@@ -148,7 +142,6 @@ class _WorkOrderTimerCardState extends ConsumerState<WorkOrderTimerCard> {
               ],
             ),
             const SizedBox(height: 12),
-
             if (_isRunning) ...[
               Container(
                 width: double.infinity,
@@ -197,9 +190,8 @@ class _WorkOrderTimerCardState extends ConsumerState<WorkOrderTimerCard> {
                           : 'Pausar actividad',
                       icon: Icons.pause_rounded,
                       enabled: !actionState.isLoading,
-                      onTap: () {
-                        _closeCurrentActivity('Pausa corta / descanso');
-                      },
+                      onTap: () =>
+                          _closeCurrentActivity('Pausa corta / descanso'),
                     ),
                   ),
                   const SizedBox(width: 10),
@@ -210,9 +202,7 @@ class _WorkOrderTimerCardState extends ConsumerState<WorkOrderTimerCard> {
                           : 'Terminar',
                       icon: Icons.stop_rounded,
                       enabled: !actionState.isLoading,
-                      onTap: () {
-                        _closeCurrentActivity('Fin de jornada');
-                      },
+                      onTap: () => _closeCurrentActivity('Fin de jornada'),
                     ),
                   ),
                 ],
@@ -234,9 +224,7 @@ class _WorkOrderTimerCardState extends ConsumerState<WorkOrderTimerCard> {
                           : 'Iniciar desplazamiento',
                       icon: Icons.directions_car_rounded,
                       enabled: !actionState.isLoading,
-                      onTap: () {
-                        _startActivity('Inicio de desplazamiento');
-                      },
+                      onTap: () => _startActivity('Inicio de desplazamiento'),
                     ),
                   ),
                   const SizedBox(width: 10),
@@ -247,15 +235,12 @@ class _WorkOrderTimerCardState extends ConsumerState<WorkOrderTimerCard> {
                           : 'Iniciar trabajo',
                       icon: Icons.play_arrow_rounded,
                       enabled: !actionState.isLoading,
-                      onTap: () {
-                        _startActivity('Inicio de actividad');
-                      },
+                      onTap: () => _startActivity('Inicio de actividad'),
                     ),
                   ),
                 ],
               ),
             ],
-
             if (actionState.errorMessage != null &&
                 actionState.errorMessage!.trim().isNotEmpty) ...[
               const SizedBox(height: 12),
@@ -275,24 +260,23 @@ class _WorkOrderTimerCardState extends ConsumerState<WorkOrderTimerCard> {
 
   Future<void> _startActivity(String optionSelect) async {
     final nowBusiness = _nowInBusinessTime();
-
     final oldHistory = _cloneHistory(_localHistory);
 
-    final newEntry = WorkOrderTimeEntryModel(
+    final newEntry = WorkOrderTimeEntryEntity(
       dateInit: _formatDate(nowBusiness),
       dateEnd: null,
       minutes: null,
       optionSelect: optionSelect,
     );
 
-    final newHistory = [..._cloneHistory(_localHistory), newEntry.toMap()];
+    final newHistory = [..._cloneHistory(_localHistory), newEntry];
 
     final ok = await ref
         .read(workOrderTimeActionControllerProvider.notifier)
         .updateTimeHistoryDiff(
           workOrderId: widget.workOrderId,
-          oldValue: oldHistory,
-          newValue: newHistory,
+          oldValue: oldHistory.map((item) => item.toMap()).toList(),
+          newValue: newHistory.map((item) => item.toMap()).toList(),
         );
 
     if (!mounted) return;
@@ -303,7 +287,6 @@ class _WorkOrderTimerCardState extends ConsumerState<WorkOrderTimerCard> {
       });
       _configureTicker();
       widget.onHistoryUpdated?.call(_cloneHistory(newHistory));
-
       await _refreshGlobalAndLocalWorkOrders();
 
       if (!mounted) return;
@@ -318,8 +301,7 @@ class _WorkOrderTimerCardState extends ConsumerState<WorkOrderTimerCard> {
     if (activeEntry == null) return;
 
     final nowBusiness = _nowInBusinessTime();
-    final rawDateInit = activeEntry.dateInit;
-    final initDateUtc = _parseBusinessDate(rawDateInit);
+    final initDateUtc = _parseBusinessDate(activeEntry.dateInit);
 
     double? minutes;
     if (initDateUtc != null) {
@@ -330,41 +312,32 @@ class _WorkOrderTimerCardState extends ConsumerState<WorkOrderTimerCard> {
 
     final oldHistory = _cloneHistory(_localHistory);
     final currentEntries = _entries;
-
-    final targetIndex = currentEntries.lastIndexWhere(
-      (e) => (e.dateEnd == null || e.dateEnd!.trim().isEmpty),
-    );
-
+    final targetIndex = currentEntries.lastIndexWhere((entry) => entry.isOpen);
     if (targetIndex == -1) return;
 
-    final updatedEntry = currentEntries[targetIndex].copyWith(
+    final updatedEntries = [...currentEntries];
+    updatedEntries[targetIndex] = updatedEntries[targetIndex].copyWith(
       dateEnd: _formatDate(nowBusiness),
       minutes: minutes,
       optionSelect: optionSelect,
     );
 
-    final updatedEntries = [...currentEntries];
-    updatedEntries[targetIndex] = updatedEntry;
-
-    final newHistory = updatedEntries.map((e) => e.toMap()).toList();
-
     final ok = await ref
         .read(workOrderTimeActionControllerProvider.notifier)
         .updateTimeHistoryDiff(
           workOrderId: widget.workOrderId,
-          oldValue: oldHistory,
-          newValue: newHistory,
+          oldValue: oldHistory.map((item) => item.toMap()).toList(),
+          newValue: updatedEntries.map((item) => item.toMap()).toList(),
         );
 
     if (!mounted) return;
 
     if (ok) {
       setState(() {
-        _localHistory = newHistory;
+        _localHistory = updatedEntries;
       });
       _configureTicker();
-      widget.onHistoryUpdated?.call(_cloneHistory(newHistory));
-
+      widget.onHistoryUpdated?.call(_cloneHistory(updatedEntries));
       await _refreshGlobalAndLocalWorkOrders();
 
       if (!mounted) return;
@@ -384,8 +357,10 @@ class _WorkOrderTimerCardState extends ConsumerState<WorkOrderTimerCard> {
     await ref.read(homeControllerProvider.notifier).fetchMyWorkOrders();
   }
 
-  List<Map<String, dynamic>> _cloneHistory(List<Map<String, dynamic>> source) {
-    return source.map((e) => Map<String, dynamic>.from(e)).toList();
+  List<WorkOrderTimeEntryEntity> _cloneHistory(
+    List<WorkOrderTimeEntryEntity> source,
+  ) {
+    return source.map((item) => item.copyWith()).toList();
   }
 
   String _elapsedLabel(String rawDateInit) {
@@ -394,7 +369,6 @@ class _WorkOrderTimerCardState extends ConsumerState<WorkOrderTimerCard> {
 
     final diff = DateTime.now().toUtc().difference(initDateUtc);
     final safeDiff = diff.isNegative ? Duration.zero : diff;
-
     final hours = safeDiff.inHours;
     final minutes = safeDiff.inMinutes.remainder(60);
     final seconds = safeDiff.inSeconds.remainder(60);
@@ -417,7 +391,6 @@ class _WorkOrderTimerCardState extends ConsumerState<WorkOrderTimerCard> {
 
       final dateParts = parts[0].split('/');
       final timeParts = parts[1].split(':');
-
       if (dateParts.length != 3 || timeParts.length != 3) return null;
 
       final day = int.parse(dateParts[0]);
@@ -440,7 +413,6 @@ class _WorkOrderTimerCardState extends ConsumerState<WorkOrderTimerCard> {
     final hour = value.hour.toString().padLeft(2, '0');
     final minute = value.minute.toString().padLeft(2, '0');
     final second = value.second.toString().padLeft(2, '0');
-
     return '$day/$month/$year $hour:$minute:$second';
   }
 }

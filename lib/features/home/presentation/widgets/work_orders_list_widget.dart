@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
-import '../../../../app/di/providers.dart'; // ✅ loggerProvider
-import '../providers/home_providers.dart';
 import 'package:go_router/go_router.dart';
+
+import '../../../../app/di/providers.dart';
+import '../providers/home_providers.dart';
 
 class WorkOrdersListWidget extends ConsumerWidget {
   const WorkOrdersListWidget({super.key});
@@ -12,8 +12,6 @@ class WorkOrdersListWidget extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(homeControllerProvider);
     final logger = ref.watch(loggerProvider);
-
-    // ✅ Nueva fuente: solo las de hoy
     final list = state.todayWorkOrders;
 
     if (state.loadingWorkOrders) {
@@ -52,20 +50,17 @@ class WorkOrdersListWidget extends ConsumerWidget {
       );
     }
 
-    // ✅ Scroll propio: altura fija + ListView interno
     return SizedBox(
       height: 440,
       child: ListView.separated(
         primary: false,
         physics: const BouncingScrollPhysics(),
         itemCount: list.length,
-        separatorBuilder: (_, __) => const SizedBox(height: 12),
+        separatorBuilder: (context, index) => const SizedBox(height: 12),
         itemBuilder: (context, index) {
           final item = list[index];
-
-          final title = (item['text_nameWorkOrder_id'] ?? '').toString().trim();
+          final title = item.name.trim();
           final displayTitle = title.isEmpty ? '(Sin nombre)' : title;
-
           final initials = _initialsFrom(displayTitle);
 
           return Container(
@@ -86,20 +81,19 @@ class WorkOrdersListWidget extends ConsumerWidget {
               child: InkWell(
                 borderRadius: BorderRadius.circular(18),
                 onTap: () {
-                  final id = (item['_id'] ?? '').toString().trim();
+                  final id = item.id.trim();
                   if (id.isEmpty) return;
 
-                  logger.i('WorkOrder selected: $item');
+                  logger.i('WorkOrder selected: ${item.rawData}');
                   context.go('/work-orders/$id');
                 },
                 onLongPress: () {
-                  logger.i('WorkOrder selected (long): $item');
+                  logger.i('WorkOrder selected (long): ${item.rawData}');
                 },
                 child: Padding(
                   padding: const EdgeInsets.all(14),
                   child: Row(
                     children: [
-                      // Avatar pro (iniciales)
                       Container(
                         width: 46,
                         height: 46,
@@ -118,8 +112,6 @@ class WorkOrdersListWidget extends ConsumerWidget {
                         ),
                       ),
                       const SizedBox(width: 12),
-
-                      // Title + subtitle “ligero”
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -147,9 +139,7 @@ class WorkOrdersListWidget extends ConsumerWidget {
                           ],
                         ),
                       ),
-
                       const SizedBox(width: 10),
-
                       Container(
                         width: 34,
                         height: 34,
@@ -182,7 +172,7 @@ class WorkOrdersListWidget extends ConsumerWidget {
 
     final parts = clean
         .split(RegExp(r'\s+'))
-        .where((e) => e.isNotEmpty)
+        .where((item) => item.isNotEmpty)
         .toList();
     if (parts.isEmpty) return '?';
 

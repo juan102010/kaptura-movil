@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
-import '../state/customers_controller.dart';
-import 'customer_detail_page.dart';
+import '../providers/customers_providers.dart';
 
 class CustomersPage extends ConsumerStatefulWidget {
   const CustomersPage({super.key});
@@ -60,50 +60,33 @@ class _CustomersPageState extends ConsumerState<CustomersPage> {
               child: ListView.separated(
                 physics: const AlwaysScrollableScrollPhysics(),
                 itemCount: state.customers.length,
-                separatorBuilder: (_, __) => const Divider(height: 1),
+                separatorBuilder: (_, separatorIndex) =>
+                    const Divider(height: 1),
                 itemBuilder: (context, index) {
-                  final c = state.customers[index];
-
-                  final id = (c['_id'] ?? '').toString();
-                  final type = (c['rad_clientType_id'] ?? '').toString();
-
-                  // Nombre: si existe text_custName_id úsalo, sino arma con first/last
-                  final custName = (c['text_custName_id'] ?? '')
-                      .toString()
-                      .trim();
-                  final first = (c['text_firstName_id'] ?? '')
-                      .toString()
-                      .trim();
-                  final last = (c['text_lastName_id'] ?? '').toString().trim();
-
-                  final displayName = custName.isNotEmpty
-                      ? custName
-                      : [first, last].where((e) => e.isNotEmpty).join(' ');
-
-                  // ejemplo de campo anidado "simple": city es List
-                  final city = _firstStringFromList(c['text_city_id']);
+                  final customer = state.customers[index];
 
                   return ListTile(
                     title: Text(
-                      displayName.isEmpty ? '(Sin nombre)' : displayName,
+                      customer.displayName.isEmpty
+                          ? '(Sin nombre)'
+                          : customer.displayName,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
                     subtitle: Text(
                       [
-                        if (type.isNotEmpty) type,
-                        if (city != null && city.isNotEmpty) city,
-                        if (id.isNotEmpty) 'ID: $id',
+                        if (customer.clientType.isNotEmpty) customer.clientType,
+                        if (customer.city.isNotEmpty) customer.city,
+                        if (customer.id.isNotEmpty) 'ID: ${customer.id}',
                       ].join(' • '),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
                     trailing: const Icon(Icons.chevron_right),
                     onTap: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => CustomerDetailPage(customer: c),
-                        ),
+                      context.push(
+                        '/customers/${customer.id}',
+                        extra: customer,
                       );
                     },
                   );
@@ -115,14 +98,6 @@ class _CustomersPageState extends ConsumerState<CustomersPage> {
       ),
     );
   }
-
-  String? _firstStringFromList(dynamic value) {
-    if (value is List && value.isNotEmpty) {
-      final v = value.first?.toString().trim();
-      if (v != null && v.isNotEmpty) return v;
-    }
-    return null;
-  }
 }
 
 class _InfoBanner extends StatelessWidget {
@@ -133,7 +108,7 @@ class _InfoBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: Colors.amber.withOpacity(0.25),
+      color: Colors.amber.withValues(alpha: 0.25),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         child: Row(
@@ -156,7 +131,7 @@ class _ErrorBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: Colors.red.withOpacity(0.12),
+      color: Colors.red.withValues(alpha: 0.12),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         child: Row(

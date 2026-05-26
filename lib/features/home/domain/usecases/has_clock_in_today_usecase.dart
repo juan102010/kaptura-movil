@@ -22,11 +22,11 @@ class HasClockInTodayUsecase {
     final list = await _repository.getTimeReports();
 
     for (final r in list) {
-      if (r['userId']?.toString() != userId) continue;
-      if (r['type']?.toString() != 'clock_in') continue;
+      if (r.userId != userId) continue;
+      if (r.type != 'clock_in') continue;
 
-      final atIso = r['atISO']?.toString();
-      if (atIso == null || atIso.isEmpty) continue;
+      final atIso = r.atIso;
+      if (atIso.isEmpty) continue;
 
       if (_bogotaDayKeyFromIso(atIso) == todayKey) return true;
     }

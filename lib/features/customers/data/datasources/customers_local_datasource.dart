@@ -3,10 +3,11 @@ import 'dart:convert';
 import 'package:drift/drift.dart';
 
 import '../../../../core/local_db/app_database.dart';
+import '../models/customer_model.dart';
 
 abstract class CustomersLocalDataSource {
-  Future<void> upsertCustomersCache(List<Map<String, dynamic>> rawCustomers);
-  Future<List<Map<String, dynamic>>> getCustomersCacheRaw();
+  Future<void> upsertCustomersCache(List<CustomerModel> customers);
+  Future<List<CustomerModel>> getCustomersCacheRaw();
   Future<void> clearCustomersCache();
 }
 
@@ -16,25 +17,20 @@ class CustomersLocalDataSourceImpl implements CustomersLocalDataSource {
   final AppDatabase _db;
 
   @override
-  Future<void> upsertCustomersCache(
-    List<Map<String, dynamic>> rawCustomers,
-  ) async {
-    if (rawCustomers.isEmpty) return;
+  Future<void> upsertCustomersCache(List<CustomerModel> customers) async {
+    if (customers.isEmpty) return;
 
     await _db.batch((batch) {
       batch.insertAllOnConflictUpdate(
         _db.customersTable,
-        rawCustomers
-            .map((e) {
-              final id = (e['_id'] ?? '').toString().trim();
+        customers
+            .map((customer) {
+              final id = customer.id.trim();
               if (id.isEmpty) return null;
-
-              final rawJson = _safeEncodeMap(e);
 
               return CustomersTableCompanion(
                 id: Value(id),
-                rawJson: Value(rawJson),
-                // cachedAt queda al default currentDateAndTime()
+                rawJson: Value(_safeEncodeMap(customer.toMap())),
               );
             })
             .whereType<CustomersTableCompanion>()
@@ -44,19 +40,14 @@ class CustomersLocalDataSourceImpl implements CustomersLocalDataSource {
   }
 
   @override
-  Future<List<Map<String, dynamic>>> getCustomersCacheRaw() async {
+  Future<List<CustomerModel>> getCustomersCacheRaw() async {
     final rows = await _db.select(_db.customersTable).get();
 
-    return rows.map((r) {
-      final map = _safeDecodeMap(r.rawJson);
-
-      // Aseguramos el _id
-      map['_id'] ??= r.id;
-
-      // Metadata local útil
-      map['cachedAt'] = r.cachedAt.toIso8601String();
-
-      return map;
+    return rows.map((row) {
+      final map = _safeDecodeMap(row.rawJson);
+      map['_id'] ??= row.id;
+      map['cachedAt'] = row.cachedAt.toIso8601String();
+      return CustomerModel.fromMap(map);
     }).toList();
   }
 
@@ -64,10 +55,6 @@ class CustomersLocalDataSourceImpl implements CustomersLocalDataSource {
   Future<void> clearCustomersCache() async {
     await _db.delete(_db.customersTable).go();
   }
-
-  // ============================
-  // Helpers
-  // ============================
 
   String _safeEncodeMap(Map<String, dynamic> map) {
     try {

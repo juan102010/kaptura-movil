@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../work_orders/domain/entities/work_order_entity.dart';
 import '../../domain/entities/clock_coords.dart';
 import '../../domain/entities/home_entity.dart';
 import '../../domain/usecases/fetch_user_usecase.dart';
@@ -102,21 +103,17 @@ class HomeController extends StateNotifier<HomeState> {
     state = state.copyWith(savingClock: true, errorMessage: null);
 
     try {
-      final userId = currentUser.id;
-
       final newBool = await _toggleClockUsecase(
-        userId: userId,
+        userId: currentUser.id,
         currentStateClock: currentUser.stateClock,
         coords: coords,
         reason: reason,
       );
 
-      final updatedUser = currentUser.copyWith(stateClock: newBool);
-
       state = state.copyWith(
         status: HomeStatus.ready,
         savingClock: false,
-        user: updatedUser,
+        user: currentUser.copyWith(stateClock: newBool),
         errorMessage: null,
       );
 
@@ -131,7 +128,6 @@ class HomeController extends StateNotifier<HomeState> {
     }
   }
 
-  /// Cache siempre. Si [skipRemote] es true, NO intentamos remoto.
   Future<void> fetchMyWorkOrders({bool skipRemote = false}) async {
     state = state.copyWith(loadingWorkOrders: true, workOrdersError: null);
 
@@ -139,7 +135,6 @@ class HomeController extends StateNotifier<HomeState> {
       final userId = await _requireUserId();
       if (userId == null) return;
 
-      // 1) Cache rápido
       final cached = await _getMyWorkOrdersUsecase.getCached();
       if (cached.isNotEmpty) {
         state = state.copyWith(
@@ -154,8 +149,8 @@ class HomeController extends StateNotifier<HomeState> {
         );
       } else {
         state = state.copyWith(
-          todayWorkOrders: const [],
-          filteredWorkOrders: const [],
+          todayWorkOrders: const <WorkOrderEntity>[],
+          filteredWorkOrders: const <WorkOrderEntity>[],
         );
       }
 
@@ -164,7 +159,6 @@ class HomeController extends StateNotifier<HomeState> {
         return;
       }
 
-      // 2) Remoto filtrado (usecase ya guarda cache)
       final remoteFiltered = await _getMyWorkOrdersUsecase(userId: userId);
 
       state = state.copyWith(
@@ -199,19 +193,15 @@ class HomeController extends StateNotifier<HomeState> {
       }
 
       final allReports = await _getTimeReportsUsecase();
-
-      final myReports = allReports.where((report) {
-        return (report['userId'] ?? '').toString() == userId;
-      }).toList();
-
-      myReports.sort((a, b) {
-        final aDate =
-            _tryParseDate(a['atISO']) ?? DateTime.fromMillisecondsSinceEpoch(0);
-        final bDate =
-            _tryParseDate(b['atISO']) ?? DateTime.fromMillisecondsSinceEpoch(0);
-
-        return bDate.compareTo(aDate);
-      });
+      final myReports =
+          allReports.where((report) => report.userId == userId).toList()
+            ..sort((a, b) {
+              final aDate =
+                  a.atDateTime ?? DateTime.fromMillisecondsSinceEpoch(0);
+              final bDate =
+                  b.atDateTime ?? DateTime.fromMillisecondsSinceEpoch(0);
+              return bDate.compareTo(aDate);
+            });
 
       state = state.copyWith(
         loadingLatestTimeReport: false,
@@ -221,10 +211,6 @@ class HomeController extends StateNotifier<HomeState> {
       state = state.copyWith(loadingLatestTimeReport: false);
     }
   }
-
-  // ============================
-  // Fecha seleccionada Work Orders
-  // ============================
 
   void setSelectedWorkOrdersDate(DateTime date) {
     final normalized = _normalizeDate(date);
@@ -236,48 +222,39 @@ class HomeController extends StateNotifier<HomeState> {
   }
 
   void goToPreviousWorkOrdersDay() {
-    final previous = state.selectedWorkOrdersDate.subtract(
-      const Duration(days: 1),
+    setSelectedWorkOrdersDate(
+      state.selectedWorkOrdersDate.subtract(const Duration(days: 1)),
     );
-    setSelectedWorkOrdersDate(previous);
   }
 
   void goToNextWorkOrdersDay() {
-    final next = state.selectedWorkOrdersDate.add(const Duration(days: 1));
-    setSelectedWorkOrdersDate(next);
+    setSelectedWorkOrdersDate(
+      state.selectedWorkOrdersDate.add(const Duration(days: 1)),
+    );
   }
 
   void goToTodayWorkOrdersDate() {
     setSelectedWorkOrdersDate(DateTime.now());
   }
 
-  // ============================
-  // Helpers: filtro "hoy"
-  // ============================
-
-  List<Map<String, dynamic>> _filterToday(List<Map<String, dynamic>> list) {
+  List<WorkOrderEntity> _filterToday(List<WorkOrderEntity> list) {
     final now = DateTime.now();
-
     final startOfDay = DateTime(now.year, now.month, now.day);
     final endOfDay = DateTime(now.year, now.month, now.day, 23, 59, 59, 999);
 
     return list.where((wo) {
       final start = _extractWorkOrderStart(wo);
       if (start == null) return false;
-
       final end = _extractWorkOrderEnd(wo) ?? start;
-
-      final overlaps = !(end.isBefore(startOfDay) || start.isAfter(endOfDay));
-      return overlaps;
+      return !(end.isBefore(startOfDay) || start.isAfter(endOfDay));
     }).toList();
   }
 
-  List<Map<String, dynamic>> _filterBySelectedDate(
-    List<Map<String, dynamic>> list,
+  List<WorkOrderEntity> _filterBySelectedDate(
+    List<WorkOrderEntity> list,
     DateTime selectedDate,
   ) {
     final normalized = _normalizeDate(selectedDate);
-
     final startOfDay = DateTime(
       normalized.year,
       normalized.month,
@@ -296,11 +273,8 @@ class HomeController extends StateNotifier<HomeState> {
     return list.where((wo) {
       final start = _extractWorkOrderStart(wo);
       if (start == null) return false;
-
       final end = _extractWorkOrderEnd(wo) ?? start;
-
-      final overlaps = !(end.isBefore(startOfDay) || start.isAfter(endOfDay));
-      return overlaps;
+      return !(end.isBefore(startOfDay) || start.isAfter(endOfDay));
     }).toList();
   }
 
@@ -308,34 +282,10 @@ class HomeController extends StateNotifier<HomeState> {
     return DateTime(date.year, date.month, date.day);
   }
 
-  DateTime? _extractWorkOrderStart(Map<String, dynamic> wo) {
-    final a = _tryParseDate(wo['date_start_id']);
-    if (a != null) return a.toLocal();
+  DateTime? _extractWorkOrderStart(WorkOrderEntity wo) => wo.startAt?.toLocal();
 
-    final b = _tryParseDate(wo['__local_startAt']);
-    return b?.toLocal();
-  }
+  DateTime? _extractWorkOrderEnd(WorkOrderEntity wo) => wo.endAt?.toLocal();
 
-  DateTime? _extractWorkOrderEnd(Map<String, dynamic> wo) {
-    final a = _tryParseDate(wo['date_end_id']);
-    if (a != null) return a.toLocal();
-
-    final b = _tryParseDate(wo['__local_endAt']);
-    return b?.toLocal();
-  }
-
-  DateTime? _tryParseDate(dynamic v) {
-    if (v == null) return null;
-    final s = v.toString().trim();
-    if (s.isEmpty) return null;
-    try {
-      return DateTime.parse(s);
-    } catch (_) {
-      return null;
-    }
-  }
-
-  // útil para pruebas
   void setUserLocal(HomeEntity user) {
     state = state.copyWith(
       status: HomeStatus.ready,

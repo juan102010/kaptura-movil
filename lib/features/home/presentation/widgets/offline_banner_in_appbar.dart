@@ -52,7 +52,7 @@ class _OfflineBannerInAppBarState extends State<OfflineBannerInAppBar>
               // Dot pulsante (se mantiene la lógica)
               AnimatedBuilder(
                 animation: _pulse,
-                builder: (_, __) {
+                builder: (context, child) {
                   final t = _pulse.value;
                   final scale = 0.85 + (t * 0.25);
                   final alpha = 0.55 + (t * 0.45);

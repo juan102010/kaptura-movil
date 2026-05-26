@@ -61,7 +61,7 @@ class _OfflineBannerState extends State<OfflineBanner>
                   children: [
                     AnimatedBuilder(
                       animation: _pulse,
-                      builder: (_, __) {
+                      builder: (context, child) {
                         final t = _pulse.value; // 0..1
                         final scale = 0.9 + (t * 0.2);
                         final alpha = 0.55 + (t * 0.45);

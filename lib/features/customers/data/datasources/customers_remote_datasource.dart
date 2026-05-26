@@ -1,7 +1,9 @@
 import 'package:dio/dio.dart';
 
+import '../models/customer_model.dart';
+
 abstract class CustomersRemoteDataSource {
-  Future<List<Map<String, dynamic>>> getCustomers();
+  Future<List<CustomerModel>> getCustomers();
 }
 
 class CustomersRemoteDataSourceImpl implements CustomersRemoteDataSource {
@@ -19,7 +21,7 @@ class CustomersRemoteDataSourceImpl implements CustomersRemoteDataSource {
     if (data is List) {
       return data
           .whereType<Map>()
-          .map((e) => e.cast<String, dynamic>())
+          .map((item) => item.cast<String, dynamic>())
           .toList();
     }
     return <Map<String, dynamic>>[];
@@ -34,7 +36,7 @@ class CustomersRemoteDataSourceImpl implements CustomersRemoteDataSource {
   }
 
   @override
-  Future<List<Map<String, dynamic>>> getCustomers() async {
+  Future<List<CustomerModel>> getCustomers() async {
     final resp = await _apiDio.get(
       '/api/dynamicRow/get-data-table',
       queryParameters: {'nombre_de_tabla': 'customers'},
@@ -43,6 +45,6 @@ class CustomersRemoteDataSourceImpl implements CustomersRemoteDataSource {
     final body = _asMap(resp.data);
     _ensureOk(body);
 
-    return _asListOfMap(body['data']);
+    return _asListOfMap(body['data']).map(CustomerModel.fromMap).toList();
   }
 }

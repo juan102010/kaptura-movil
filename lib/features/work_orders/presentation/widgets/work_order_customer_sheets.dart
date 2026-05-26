@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../app/di/providers.dart';
+import '../../../customers/domain/entities/customer_entity.dart';
 import '../widgets/work_order_details_shared_widgets.dart';
 
 class CustomerBottomSheetHelpers {
@@ -10,7 +11,7 @@ class CustomerBottomSheetHelpers {
   static void showCustomerBottomSheet({
     required BuildContext context,
     required WidgetRef ref,
-    required Map<String, dynamic> customer,
+    required CustomerEntity customer,
     required String title,
     required List<DisplayRowData> rows,
     required List<ServiceCategoryNote> notes,
@@ -84,7 +85,7 @@ class CustomerBottomSheetHelpers {
                             const Padding(
                               padding: EdgeInsets.symmetric(vertical: 24),
                               child: Center(
-                                child: Text('No hay información del cliente.'),
+                                child: Text('No hay informacion del cliente.'),
                               ),
                             )
                           else
@@ -209,12 +210,6 @@ class _CredentialsNotesSheetState extends ConsumerState<CredentialsNotesSheet> {
           '[CredentialsNotes][SAVE] categoria=$category | before="$before" | after="$after"',
         );
 
-        debugPrint(
-          '[CredentialsNotes][SAVE] categoria=$category\n'
-          'ANTES:\n$before\n'
-          'DESPUES:\n$after\n',
-        );
-
         _originalMessages[category] = after;
       }
     }
@@ -293,7 +288,7 @@ class _CredentialsNotesSheetState extends ConsumerState<CredentialsNotesSheet> {
                               children: [
                                 Expanded(
                                   child: Text(
-                                    'Credenciales o notas por categoría',
+                                    'Credenciales o notas por categoria',
                                     style: TextStyle(
                                       color: WorkOrderDetailsColors.brand
                                           .withValues(alpha: 0.65),
@@ -335,7 +330,7 @@ class _CredentialsNotesSheetState extends ConsumerState<CredentialsNotesSheet> {
                           controller: scrollController,
                           padding: const EdgeInsets.all(16),
                           itemCount: widget.notes.length,
-                          separatorBuilder: (_, __) =>
+                          separatorBuilder: (_, separatorIndex) =>
                               const SizedBox(height: 14),
                           itemBuilder: (context, index) {
                             final item = widget.notes[index];
@@ -426,7 +421,7 @@ class EditableServiceCategoryCard extends StatelessWidget {
           if (item.images.isNotEmpty) ...[
             const SizedBox(height: 14),
             Text(
-              'Imágenes (${item.images.length})',
+              'Imagenes (${item.images.length})',
               style: const TextStyle(
                 fontWeight: FontWeight.w900,
                 color: WorkOrderDetailsColors.brand,
@@ -457,7 +452,7 @@ class EditableServiceCategoryCard extends StatelessWidget {
           ],
           if (controller.text.trim().isEmpty && item.images.isEmpty)
             Text(
-              'No hay contenido registrado en esta categoría.',
+              'No hay contenido registrado en esta categoria.',
               style: TextStyle(
                 color: WorkOrderDetailsColors.brand.withValues(alpha: 0.60),
               ),
@@ -509,15 +504,16 @@ class _SignedImagePreviewState extends ConsumerState<SignedImagePreview> {
                           child: Image.network(
                             url,
                             fit: BoxFit.contain,
-                            errorBuilder: (_, __, ___) => const Center(
-                              child: Padding(
-                                padding: EdgeInsets.all(24),
-                                child: Text(
-                                  'No se pudo cargar la imagen',
-                                  style: TextStyle(color: Colors.white),
+                            errorBuilder: (_, error, stackTrace) =>
+                                const Center(
+                                  child: Padding(
+                                    padding: EdgeInsets.all(24),
+                                    child: Text(
+                                      'No se pudo cargar la imagen',
+                                      style: TextStyle(color: Colors.white),
+                                    ),
+                                  ),
                                 ),
-                              ),
-                            ),
                           ),
                         ),
                       ),
@@ -554,7 +550,7 @@ class _SignedImagePreviewState extends ConsumerState<SignedImagePreview> {
     return Image.network(
       url,
       fit: BoxFit.cover,
-      errorBuilder: (_, __, ___) =>
+      errorBuilder: (_, error, stackTrace) =>
           const Center(child: Icon(Icons.broken_image_outlined)),
       loadingBuilder: (context, child, progress) {
         if (progress == null) return child;
@@ -577,9 +573,7 @@ class _SignedImagePreviewState extends ConsumerState<SignedImagePreview> {
       if (signedUrl != null && signedUrl.isNotEmpty) {
         return signedUrl;
       }
-    } catch (_) {
-      // fallback abajo
-    }
+    } catch (_) {}
 
     final fallback = (widget.imageData['url'] ?? '').toString().trim();
     return fallback.isEmpty ? null : fallback;

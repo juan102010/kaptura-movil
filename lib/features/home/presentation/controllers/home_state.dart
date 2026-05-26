@@ -1,4 +1,6 @@
+import '../../../work_orders/domain/entities/work_order_entity.dart';
 import '../../domain/entities/home_entity.dart';
+import '../../domain/entities/time_report_entity.dart';
 
 enum HomeStatus { initial, loading, ready, error }
 
@@ -15,8 +17,6 @@ class HomeState {
     required this.filteredWorkOrders,
     required this.selectedWorkOrdersDate,
     required this.workOrdersError,
-
-    // NUEVO
     required this.loadingLatestTimeReport,
     required this.latestTimeReport,
   });
@@ -28,15 +28,14 @@ class HomeState {
   final String? errorMessage;
 
   final bool loadingWorkOrders;
-  final List<Map<String, dynamic>> workOrders;
-  final List<Map<String, dynamic>> todayWorkOrders;
-  final List<Map<String, dynamic>> filteredWorkOrders;
+  final List<WorkOrderEntity> workOrders;
+  final List<WorkOrderEntity> todayWorkOrders;
+  final List<WorkOrderEntity> filteredWorkOrders;
   final DateTime selectedWorkOrdersDate;
   final String? workOrdersError;
 
-  // NUEVO
   final bool loadingLatestTimeReport;
-  final Map<String, dynamic>? latestTimeReport;
+  final TimeReportEntity? latestTimeReport;
 
   factory HomeState.initial() {
     final today = DateTime.now();
@@ -49,13 +48,11 @@ class HomeState {
       user: null,
       errorMessage: null,
       loadingWorkOrders: false,
-      workOrders: const <Map<String, dynamic>>[],
-      todayWorkOrders: const <Map<String, dynamic>>[],
-      filteredWorkOrders: const <Map<String, dynamic>>[],
+      workOrders: const <WorkOrderEntity>[],
+      todayWorkOrders: const <WorkOrderEntity>[],
+      filteredWorkOrders: const <WorkOrderEntity>[],
       selectedWorkOrdersDate: normalizedToday,
       workOrdersError: null,
-
-      // NUEVO
       loadingLatestTimeReport: false,
       latestTimeReport: null,
     );
@@ -68,15 +65,13 @@ class HomeState {
     HomeEntity? user,
     String? errorMessage,
     bool? loadingWorkOrders,
-    List<Map<String, dynamic>>? workOrders,
-    List<Map<String, dynamic>>? todayWorkOrders,
-    List<Map<String, dynamic>>? filteredWorkOrders,
+    List<WorkOrderEntity>? workOrders,
+    List<WorkOrderEntity>? todayWorkOrders,
+    List<WorkOrderEntity>? filteredWorkOrders,
     DateTime? selectedWorkOrdersDate,
     String? workOrdersError,
-
-    // NUEVO
     bool? loadingLatestTimeReport,
-    Map<String, dynamic>? latestTimeReport,
+    TimeReportEntity? latestTimeReport,
   }) {
     return HomeState(
       status: status ?? this.status,

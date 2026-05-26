@@ -9,7 +9,7 @@ import '../../data/datasources/projects_remote_datasource.dart';
 import '../../data/repositories/projects_repository_impl.dart';
 import '../../domain/repositories/projects_repository.dart';
 import '../../domain/usecases/get_projects_usecase.dart';
-import 'projects_controller.dart';
+import '../controllers/projects_controller.dart';
 
 final projectsRemoteDataSourceProvider = Provider<ProjectsRemoteDataSource>((
   ref,

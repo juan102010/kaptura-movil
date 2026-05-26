@@ -1,9 +1,11 @@
+import '../../../work_orders/domain/entities/work_order_entity.dart';
 import '../entities/home_entity.dart';
+import '../entities/time_report_entity.dart';
 
 abstract class HomeRepository {
   Future<HomeEntity> getUserById({required String userId});
 
-  Future<List<Map<String, dynamic>>> getTimeReports();
+  Future<List<TimeReportEntity>> getTimeReports();
 
   Future<void> createTimeReport({required Map<String, dynamic> payload});
 
@@ -11,10 +13,10 @@ abstract class HomeRepository {
     required String userId,
     required Map<String, dynamic> diffPayload,
   });
-  Future<List<Map<String, dynamic>>> getWorkOrdersRemote();
 
-  // Cache local
-  Future<void> saveWorkOrdersCache(List<Map<String, dynamic>> rawWorkOrders);
-  Future<List<Map<String, dynamic>>> getWorkOrdersCache();
+  Future<List<WorkOrderEntity>> getWorkOrdersRemote();
+
+  Future<void> saveWorkOrdersCache(List<WorkOrderEntity> workOrders);
+  Future<List<WorkOrderEntity>> getWorkOrdersCache();
   Future<void> clearWorkOrdersCache();
 }

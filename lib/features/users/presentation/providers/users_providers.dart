@@ -9,7 +9,7 @@ import '../../data/datasources/users_remote_datasource.dart';
 import '../../data/repositories/users_repository_impl.dart';
 import '../../domain/repositories/users_repository.dart';
 import '../../domain/usecases/get_users_usecase.dart';
-import 'users_controller.dart';
+import '../controllers/users_controller.dart';
 
 final usersRemoteDataSourceProvider = Provider<UsersRemoteDataSource>((ref) {
   final dioClients = ref.watch(dioClientsProvider);

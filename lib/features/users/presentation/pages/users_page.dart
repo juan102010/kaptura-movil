@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
+import '../controllers/users_controller.dart';
 import '../providers/users_providers.dart';
-import 'user_detail_page.dart';
 
 class UsersPage extends ConsumerStatefulWidget {
   const UsersPage({super.key});
@@ -41,7 +42,7 @@ class _UsersPageState extends ConsumerState<UsersPage> {
     );
   }
 
-  Widget _buildBody(BuildContext context, dynamic state) {
+  Widget _buildBody(BuildContext context, UsersState state) {
     if (state.loading && state.users.isEmpty) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -62,23 +63,17 @@ class _UsersPageState extends ConsumerState<UsersPage> {
       },
       child: ListView.separated(
         itemCount: state.users.length,
-        separatorBuilder: (_, __) => const Divider(height: 1),
+        separatorBuilder: (_, separatorIndex) => const Divider(height: 1),
         itemBuilder: (context, index) {
-          final Map<String, dynamic> user = state.users[index];
-
-          final name = user['name'] ?? 'No name';
-          final email = user['email'] ?? '';
-          final identification = user['identification'] ?? '';
+          final user = state.users[index];
 
           return ListTile(
             leading: const CircleAvatar(child: Icon(Icons.person)),
-            title: Text(name.toString()),
-            subtitle: Text(email.toString()),
-            trailing: Text(identification.toString()),
+            title: Text(user.name),
+            subtitle: Text(user.email),
+            trailing: Text(user.identification),
             onTap: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => UserDetailPage(user: user)),
-              );
+              context.push('/users/${user.id}', extra: user);
             },
           );
         },

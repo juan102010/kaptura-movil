@@ -1,14 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../domain/entities/customer_entity.dart';
 import '../../domain/usecases/get_customers_usecase.dart';
-import '../providers/customers_providers.dart';
 
 class CustomersState {
-  final bool loading;
-  final List<Map<String, dynamic>> customers;
-  final String? error;
-  final bool fromCache;
-
   const CustomersState({
     required this.loading,
     required this.customers,
@@ -16,16 +11,21 @@ class CustomersState {
     required this.fromCache,
   });
 
+  final bool loading;
+  final List<CustomerEntity> customers;
+  final String? error;
+  final bool fromCache;
+
   factory CustomersState.initial() => const CustomersState(
     loading: false,
-    customers: <Map<String, dynamic>>[],
+    customers: <CustomerEntity>[],
     error: null,
     fromCache: false,
   );
 
   CustomersState copyWith({
     bool? loading,
-    List<Map<String, dynamic>>? customers,
+    List<CustomerEntity>? customers,
     String? error,
     bool? fromCache,
   }) {
@@ -43,13 +43,9 @@ class CustomersController extends StateNotifier<CustomersState> {
 
   final GetCustomersUsecase _usecase;
 
-  /// Cache-first UI:
-  /// 1) emite cache (si hay)
-  /// 2) luego intenta remoto y reemplaza
   Future<void> loadCacheThenRemote() async {
     state = state.copyWith(loading: true, error: null);
 
-    // 1) cache primero
     try {
       final cached = await _usecase.getCached();
       if (cached.isNotEmpty) {
@@ -60,11 +56,8 @@ class CustomersController extends StateNotifier<CustomersState> {
           error: null,
         );
       }
-    } catch (_) {
-      // Si cache falla, no tumbamos el flujo
-    }
+    } catch (_) {}
 
-    // 2) remoto
     try {
       final remote = await _usecase();
       state = state.copyWith(
@@ -74,12 +67,10 @@ class CustomersController extends StateNotifier<CustomersState> {
         error: null,
       );
     } catch (e) {
-      // Si falla remoto, dejamos lo que haya (cache o vacío)
       state = state.copyWith(loading: false, error: e.toString());
     }
   }
 
-  /// Solo remoto (ej: pull-to-refresh)
   Future<void> refreshRemoteOnly() async {
     state = state.copyWith(loading: true, error: null);
     try {
@@ -98,14 +89,8 @@ class CustomersController extends StateNotifier<CustomersState> {
   Future<void> clearCache() async {
     await _usecase.clearCache();
     state = state.copyWith(
-      customers: <Map<String, dynamic>>[],
+      customers: const <CustomerEntity>[],
       fromCache: false,
     );
   }
 }
-
-final customersControllerProvider =
-    StateNotifierProvider<CustomersController, CustomersState>((ref) {
-      final usecase = ref.watch(getCustomersUsecaseProvider);
-      return CustomersController(usecase);
-    });

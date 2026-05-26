@@ -10,6 +10,7 @@ import '../../data/datasources/customers_remote_datasource.dart';
 import '../../data/repositories/customers_repository_impl.dart';
 import '../../domain/repositories/customers_repository.dart';
 import '../../domain/usecases/get_customers_usecase.dart';
+import '../controllers/customers_controller.dart';
 
 final customersRemoteDataSourceProvider = Provider<CustomersRemoteDataSource>((
   ref,
@@ -34,3 +35,9 @@ final getCustomersUsecaseProvider = Provider<GetCustomersUsecase>((ref) {
   final repo = ref.watch(customersRepositoryProvider);
   return GetCustomersUsecase(repo);
 });
+
+final customersControllerProvider =
+    StateNotifierProvider<CustomersController, CustomersState>((ref) {
+      final usecase = ref.watch(getCustomersUsecaseProvider);
+      return CustomersController(usecase);
+    });

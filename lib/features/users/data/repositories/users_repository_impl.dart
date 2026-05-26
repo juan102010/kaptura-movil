@@ -1,29 +1,33 @@
+import '../../domain/entities/user_list_entity.dart';
 import '../../domain/repositories/users_repository.dart';
 import '../datasources/users_local_datasource.dart';
 import '../datasources/users_remote_datasource.dart';
+import '../models/user_list_model.dart';
 
 class UsersRepositoryImpl implements UsersRepository {
-  final UsersRemoteDataSource remoteDataSource;
-  final UsersLocalDataSource localDataSource;
-
   UsersRepositoryImpl({
     required this.remoteDataSource,
     required this.localDataSource,
   });
 
+  final UsersRemoteDataSource remoteDataSource;
+  final UsersLocalDataSource localDataSource;
+
   @override
-  Future<List<Map<String, dynamic>>> getCachedUsers() {
+  Future<List<UserListEntity>> getCachedUsers() {
     return localDataSource.getCachedUsers();
   }
 
   @override
-  Future<List<Map<String, dynamic>>> getRemoteUsers() {
+  Future<List<UserListEntity>> getRemoteUsers() {
     return remoteDataSource.getUsers();
   }
 
   @override
-  Future<void> cacheUsers(List<Map<String, dynamic>> users) {
-    return localDataSource.cacheUsers(users);
+  Future<void> cacheUsers(List<UserListEntity> users) {
+    return localDataSource.cacheUsers(
+      users.map((item) => UserListModel.fromMap(item.rawData)).toList(),
+    );
   }
 
   @override

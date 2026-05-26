@@ -1,6 +1,8 @@
+import '../entities/user_list_entity.dart';
+
 abstract class UsersRepository {
-  Future<List<Map<String, dynamic>>> getCachedUsers();
-  Future<List<Map<String, dynamic>>> getRemoteUsers();
-  Future<void> cacheUsers(List<Map<String, dynamic>> users);
+  Future<List<UserListEntity>> getCachedUsers();
+  Future<List<UserListEntity>> getRemoteUsers();
+  Future<void> cacheUsers(List<UserListEntity> users);
   Future<void> clearUsers();
 }

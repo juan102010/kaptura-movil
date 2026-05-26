@@ -1,58 +1,20 @@
-class WorkOrderTimeEntryModel {
+import '../../domain/entities/work_order_time_entry_entity.dart';
+
+class WorkOrderTimeEntryModel extends WorkOrderTimeEntryEntity {
   const WorkOrderTimeEntryModel({
-    required this.dateInit,
-    required this.dateEnd,
-    required this.minutes,
-    required this.optionSelect,
+    required super.dateInit,
+    required super.dateEnd,
+    required super.minutes,
+    required super.optionSelect,
   });
 
-  final String dateInit;
-  final String? dateEnd;
-  final double? minutes;
-  final String optionSelect;
-
   factory WorkOrderTimeEntryModel.fromMap(Map<String, dynamic> map) {
+    final entity = WorkOrderTimeEntryEntity.fromMap(map);
     return WorkOrderTimeEntryModel(
-      dateInit: (map['dateInit'] ?? '').toString().trim(),
-      dateEnd: map['dateEnd'] == null
-          ? null
-          : map['dateEnd'].toString().trim().isEmpty
-          ? null
-          : map['dateEnd'].toString().trim(),
-      minutes: _toDoubleOrNull(map['minutes']),
-      optionSelect: (map['optionSelect'] ?? '').toString().trim(),
+      dateInit: entity.dateInit,
+      dateEnd: entity.dateEnd,
+      minutes: entity.minutes,
+      optionSelect: entity.optionSelect,
     );
-  }
-
-  Map<String, dynamic> toMap() {
-    return {
-      'dateInit': dateInit,
-      'dateEnd': dateEnd,
-      'minutes': minutes,
-      'optionSelect': optionSelect,
-    };
-  }
-
-  WorkOrderTimeEntryModel copyWith({
-    String? dateInit,
-    String? dateEnd,
-    bool clearDateEnd = false,
-    double? minutes,
-    bool clearMinutes = false,
-    String? optionSelect,
-  }) {
-    return WorkOrderTimeEntryModel(
-      dateInit: dateInit ?? this.dateInit,
-      dateEnd: clearDateEnd ? null : (dateEnd ?? this.dateEnd),
-      minutes: clearMinutes ? null : (minutes ?? this.minutes),
-      optionSelect: optionSelect ?? this.optionSelect,
-    );
-  }
-
-  static double? _toDoubleOrNull(dynamic value) {
-    if (value == null) return null;
-    if (value is double) return value;
-    if (value is int) return value.toDouble();
-    return double.tryParse(value.toString());
   }
 }

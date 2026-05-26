@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../customers/domain/entities/customer_entity.dart';
+
 class WorkOrderDetailsUiUtils {
   const WorkOrderDetailsUiUtils._();
 
@@ -513,7 +515,7 @@ class ResolvedCustomer {
   const ResolvedCustomer({required this.displayText, required this.customer});
 
   final String displayText;
-  final Map<String, dynamic>? customer;
+  final CustomerEntity? customer;
 }
 
 class ServiceCategoryNote {

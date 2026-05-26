@@ -13,8 +13,8 @@ import '../../domain/usecases/get_my_work_orders_usecase.dart';
 import '../../domain/usecases/get_time_reports_usecase.dart';
 import '../../domain/usecases/has_clock_in_today_usecase.dart';
 import '../../domain/usecases/toggle_clock_usecase.dart';
-import '../state/home_controller.dart';
-import '../state/home_state.dart';
+import '../controllers/home_controller.dart';
+import '../controllers/home_state.dart';
 
 /// ✅ HomeRemoteDataSource
 final homeRemoteDataSourceProvider = Provider<HomeRemoteDataSource>((ref) {
@@ -94,5 +94,6 @@ final homeControllerProvider = StateNotifierProvider<HomeController, HomeState>(
 );
 
 final homeInternetStatusProvider = StreamProvider<InternetStatus>((ref) {
-  return ref.watch(internetStatusProvider.stream);
+  final monitor = ref.watch(internetMonitorProvider);
+  return monitor.stream;
 });

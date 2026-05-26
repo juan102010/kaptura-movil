@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:drift/drift.dart';
 
 import '../../../../core/local_db/app_database.dart';
+import '../models/project_model.dart';
 
 class ProjectsLocalDataSource {
   ProjectsLocalDataSource({required AppDatabase database})
@@ -10,24 +11,18 @@ class ProjectsLocalDataSource {
 
   final AppDatabase _database;
 
-  Future<void> upsertProjectsCache(
-    List<Map<String, dynamic>> rawProjects,
-  ) async {
-    if (rawProjects.isEmpty) return;
+  Future<void> upsertProjectsCache(List<ProjectModel> projects) async {
+    if (projects.isEmpty) return;
 
     await _database.batch((batch) {
-      for (final project in rawProjects) {
-        final id = project['_id']?.toString();
-
-        if (id == null || id.isEmpty) {
-          continue;
-        }
+      for (final project in projects) {
+        if (project.id.isEmpty) continue;
 
         batch.insert(
           _database.projectsTable,
           ProjectsTableCompanion.insert(
-            id: id,
-            rawJson: jsonEncode(project),
+            id: project.id,
+            rawJson: jsonEncode(project.toMap()),
             cachedAt: DateTime.now(),
           ),
           mode: InsertMode.insertOrReplace,
@@ -36,23 +31,20 @@ class ProjectsLocalDataSource {
     });
   }
 
-  Future<List<Map<String, dynamic>>> getProjectsCacheRaw() async {
+  Future<List<ProjectModel>> getProjectsCacheRaw() async {
     final rows = await _database.select(_database.projectsTable).get();
-
-    final result = <Map<String, dynamic>>[];
+    final result = <ProjectModel>[];
 
     for (final row in rows) {
       try {
         final decoded = jsonDecode(row.rawJson);
 
         if (decoded is Map<String, dynamic>) {
-          result.add(decoded);
+          result.add(ProjectModel.fromMap(decoded));
         } else if (decoded is Map) {
-          result.add(Map<String, dynamic>.from(decoded));
+          result.add(ProjectModel.fromMap(Map<String, dynamic>.from(decoded)));
         }
-      } catch (_) {
-        // Ignora registros corruptos o JSON inválido
-      }
+      } catch (_) {}
     }
 
     return result;

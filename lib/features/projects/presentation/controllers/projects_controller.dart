@@ -1,13 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../domain/entities/project_entity.dart';
 import '../../domain/usecases/get_projects_usecase.dart';
 
 class ProjectsState {
-  final bool loading;
-  final List<Map<String, dynamic>> projects;
-  final String? error;
-  final bool fromCache;
-
   const ProjectsState({
     required this.loading,
     required this.projects,
@@ -15,10 +11,15 @@ class ProjectsState {
     required this.fromCache,
   });
 
+  final bool loading;
+  final List<ProjectEntity> projects;
+  final String? error;
+  final bool fromCache;
+
   factory ProjectsState.initial() {
     return const ProjectsState(
       loading: false,
-      projects: [],
+      projects: <ProjectEntity>[],
       error: null,
       fromCache: false,
     );
@@ -26,7 +27,7 @@ class ProjectsState {
 
   ProjectsState copyWith({
     bool? loading,
-    List<Map<String, dynamic>>? projects,
+    List<ProjectEntity>? projects,
     String? error,
     bool clearError = false,
     bool? fromCache,
@@ -80,12 +81,12 @@ class ProjectsController extends StateNotifier<ProjectsState> {
           projects: cache,
           fromCache: true,
           error:
-              'No se pudo actualizar desde la API. Mostrando datos en caché.',
+              'No se pudo actualizar desde la API. Mostrando datos en cache.',
         );
       } else {
         state = state.copyWith(
           loading: false,
-          projects: [],
+          projects: const <ProjectEntity>[],
           fromCache: false,
           error: 'No se pudieron cargar los proyectos: $e',
         );
@@ -116,7 +117,10 @@ class ProjectsController extends StateNotifier<ProjectsState> {
 
   Future<void> clearCache() async {
     await _getProjectsUsecase.clearCache();
-
-    state = state.copyWith(projects: [], fromCache: false, clearError: true);
+    state = state.copyWith(
+      projects: const <ProjectEntity>[],
+      fromCache: false,
+      clearError: true,
+    );
   }
 }

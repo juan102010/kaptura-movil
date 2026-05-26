@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
-import '../providers/projects_controller.dart';
+import '../controllers/projects_controller.dart';
 import '../providers/projects_providers.dart';
-import 'project_detail_page.dart';
 
 class ProjectsPage extends ConsumerStatefulWidget {
   const ProjectsPage({super.key});
@@ -61,7 +61,7 @@ class _ProjectsPageState extends ConsumerState<ProjectsPage> {
                 ),
                 color: Colors.amber.shade100,
                 child: const Text(
-                  'Mostrando datos desde caché local.',
+                  'Mostrando datos desde cache local.',
                   style: TextStyle(fontSize: 13),
                 ),
               ),
@@ -107,31 +107,27 @@ class _ProjectsList extends StatelessWidget {
     return ListView.separated(
       physics: const AlwaysScrollableScrollPhysics(),
       itemCount: state.projects.length,
-      separatorBuilder: (_, __) => const Divider(height: 1),
+      separatorBuilder: (_, separatorIndex) => const Divider(height: 1),
       itemBuilder: (context, index) {
         final project = state.projects[index];
 
-        final id = (project['_id'] ?? '').toString();
-        final name = (project['text_nameProject_id'] ?? 'Sin nombre')
-            .toString();
-        final status = (project['text_stateProject_id'] ?? 'Sin estado')
-            .toString();
-        final date = (project['date_dateCreateProject_id'] ?? 'Sin fecha')
-            .toString();
-
         return ListTile(
-          title: Text(name, maxLines: 1, overflow: TextOverflow.ellipsis),
+          title: Text(
+            project.name,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
           subtitle: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Estado: $status'),
+              Text('Estado: ${project.status}'),
               Text(
-                'Fecha: $date',
+                'Fecha: ${project.dateCreated}',
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
               Text(
-                'ID: $id',
+                'ID: ${project.id}',
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: Theme.of(context).textTheme.bodySmall,
@@ -141,11 +137,7 @@ class _ProjectsList extends StatelessWidget {
           isThreeLine: true,
           trailing: const Icon(Icons.chevron_right),
           onTap: () {
-            Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (_) => ProjectDetailPage(project: project),
-              ),
-            );
+            context.push('/projects/${project.id}', extra: project);
           },
         );
       },

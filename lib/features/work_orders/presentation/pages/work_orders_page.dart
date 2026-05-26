@@ -7,10 +7,11 @@ import '../../../../core/network/internet_status.dart';
 
 import '../../../home/presentation/providers/home_providers.dart';
 import '../../../home/presentation/widgets/offline_banner_in_appbar.dart';
-import '../widgets//work_orders_date_filter_bar.dart';
+import '../widgets/work_orders_date_filter_bar.dart';
+import '../widgets/work_orders_page_sections.dart';
 
 import '../../../users/presentation/providers/users_providers.dart';
-import '../../../customers/presentation/state/customers_controller.dart';
+import '../../../customers/presentation/providers/customers_providers.dart';
 import '../../../projects/presentation/providers/projects_providers.dart';
 
 class WorkOrdersPage extends ConsumerStatefulWidget {
@@ -99,7 +100,7 @@ class _WorkOrdersPageState extends ConsumerState<WorkOrdersPage> {
     final isOffline = internetAsync.when(
       data: (status) => status == InternetStatus.offline,
       loading: () => false,
-      error: (_, __) => false,
+      error: (error, stackTrace) => false,
     );
 
     return Scaffold(
@@ -126,7 +127,7 @@ class _WorkOrdersPageState extends ConsumerState<WorkOrdersPage> {
               .when(
                 data: (status) => status == InternetStatus.offline,
                 loading: () => false,
-                error: (_, __) => false,
+                error: (error, stackTrace) => false,
               );
 
           logger.i('[WorkOrdersPage] Refresh manual. offlineNow=$offlineNow');
@@ -224,7 +225,7 @@ class _WorkOrdersPageState extends ConsumerState<WorkOrdersPage> {
                           ],
                         ),
                       ),
-                      _CountPill(count: list.length),
+                      WorkOrdersCountPill(count: list.length),
                     ],
                   ),
                 ),
@@ -249,9 +250,9 @@ class _WorkOrdersPageState extends ConsumerState<WorkOrdersPage> {
                     )
                   else if (state.workOrdersError != null &&
                       state.workOrdersError!.isNotEmpty)
-                    _ErrorCard(message: state.workOrdersError!)
+                    WorkOrdersErrorCard(message: state.workOrdersError!)
                   else if (list.isEmpty)
-                    const _EmptyCard(
+                    const WorkOrdersEmptyCard(
                       title: 'Sin Work Orders',
                       subtitle:
                           'No hay Work Orders para la fecha seleccionada.',
@@ -262,13 +263,12 @@ class _WorkOrdersPageState extends ConsumerState<WorkOrdersPage> {
                       primary: false,
                       physics: const BouncingScrollPhysics(),
                       itemCount: list.length,
-                      separatorBuilder: (_, __) => const SizedBox(height: 12),
+                      separatorBuilder: (context, index) =>
+                          const SizedBox(height: 12),
                       itemBuilder: (context, index) {
                         final item = list[index];
 
-                        final title = (item['text_nameWorkOrder_id'] ?? '')
-                            .toString()
-                            .trim();
+                        final title = item.name.trim();
                         final displayTitle = title.isEmpty
                             ? '(Sin nombre)'
                             : title;
@@ -295,17 +295,17 @@ class _WorkOrdersPageState extends ConsumerState<WorkOrdersPage> {
                             child: InkWell(
                               borderRadius: BorderRadius.circular(18),
                               onTap: () {
-                                final id = (item['_id'] ?? '')
-                                    .toString()
-                                    .trim();
+                                final id = item.id.trim();
                                 if (id.isEmpty) return;
 
-                                logger.i('WorkOrder selected (all): $item');
+                                logger.i(
+                                  'WorkOrder selected (all): ${item.rawData}',
+                                );
                                 context.go('/work-orders/$id');
                               },
                               onLongPress: () {
                                 logger.i(
-                                  'WorkOrder selected (all - long): $item',
+                                  'WorkOrder selected (all - long): ${item.rawData}',
                                 );
                               },
                               child: Padding(
@@ -412,112 +412,5 @@ class _WorkOrdersPageState extends ConsumerState<WorkOrdersPage> {
 
     final out = (first + second).toUpperCase();
     return out.isNotEmpty ? out : '?';
-  }
-}
-
-class _CountPill extends StatelessWidget {
-  const _CountPill({required this.count});
-  final int count;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(999),
-        color: Colors.white.withValues(alpha: 0.14),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.18)),
-      ),
-      child: Text(
-        '$count',
-        style: const TextStyle(
-          fontWeight: FontWeight.w900,
-          color: Colors.white,
-        ),
-      ),
-    );
-  }
-}
-
-class _ErrorCard extends StatelessWidget {
-  const _ErrorCard({required this.message});
-  final String message;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.red.withValues(alpha: 0.07),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: Colors.red.withValues(alpha: 0.22)),
-      ),
-      child: Text(
-        message,
-        style: const TextStyle(color: Colors.red, fontWeight: FontWeight.w700),
-      ),
-    );
-  }
-}
-
-class _EmptyCard extends StatelessWidget {
-  const _EmptyCard({required this.title, required this.subtitle});
-  final String title;
-  final String subtitle;
-
-  static const _brand = Color(0xFF0B2A4A);
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: Colors.black.withValues(alpha: 0.05)),
-        boxShadow: [
-          BoxShadow(
-            blurRadius: 16,
-            offset: const Offset(0, 8),
-            color: Colors.black.withValues(alpha: 0.05),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 42,
-            height: 42,
-            decoration: BoxDecoration(
-              color: const Color(0xFFE7EEF8),
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: const Icon(Icons.inbox_outlined, color: _brand),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w900,
-                    color: _brand,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  subtitle,
-                  style: TextStyle(color: _brand.withValues(alpha: 0.60)),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
   }
 }

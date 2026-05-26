@@ -1,11 +1,14 @@
 import 'package:dio/dio.dart';
 
+import '../../domain/entities/time_report_entity.dart';
+import '../models/time_report_model.dart';
 import '../models/user_model.dart';
+import '../models/work_order_model.dart';
 
 abstract class HomeRemoteDataSource {
   Future<UserModel> getUserById({required String userId});
 
-  Future<List<Map<String, dynamic>>> getTimeReports();
+  Future<List<TimeReportEntity>> getTimeReports();
 
   Future<void> createTimeReport({required Map<String, dynamic> payload});
 
@@ -13,7 +16,8 @@ abstract class HomeRemoteDataSource {
     required String userId,
     required Map<String, dynamic> diffPayload,
   });
-  Future<List<Map<String, dynamic>>> getWorkOrders();
+
+  Future<List<WorkOrderModel>> getWorkOrders();
 }
 
 class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
@@ -34,68 +38,65 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
     if (data is List) {
       return data
           .whereType<Map>()
-          .map((e) => e.cast<String, dynamic>())
+          .map((item) => item.cast<String, dynamic>())
           .toList();
     }
     return <Map<String, dynamic>>[];
   }
 
   void _ensureOk(Map<String, dynamic> body) {
-    final status = body['status'];
-    if (status == true) return;
-
-    final msg = (body['message'] ?? 'Error desconocido').toString();
-    throw Exception(msg);
+    if (body['status'] == true) return;
+    final message = (body['message'] ?? 'Error desconocido').toString();
+    throw Exception(message);
   }
 
   @override
-  Future<List<Map<String, dynamic>>> getWorkOrders() async {
-    final resp = await _apiDio.get(
+  Future<List<WorkOrderModel>> getWorkOrders() async {
+    final response = await _apiDio.get(
       '/api/dynamicRow/get-data-table',
       queryParameters: {'nombre_de_tabla': 'work_orders'},
     );
 
-    final body = _asMap(resp.data);
+    final body = _asMap(response.data);
     _ensureOk(body);
 
-    return _asListOfMap(body['data']);
+    return _asListOfMap(body['data']).map(WorkOrderModel.fromMap).toList();
   }
 
   @override
   Future<UserModel> getUserById({required String userId}) async {
-    final resp = await _loginDio.get(
+    final response = await _loginDio.get(
       '/api/v1/users/dynamicRowLogin/get-by-id',
       queryParameters: {'nombre_de_tabla': 'users', 'id': userId},
     );
 
-    final body = _asMap(resp.data);
+    final body = _asMap(response.data);
     _ensureOk(body);
 
-    final data = _asMap(body['data']);
-    return UserModel.fromJson(data);
+    return UserModel.fromJson(_asMap(body['data']));
   }
 
   @override
-  Future<List<Map<String, dynamic>>> getTimeReports() async {
-    final resp = await _apiDio.get(
+  Future<List<TimeReportEntity>> getTimeReports() async {
+    final response = await _apiDio.get(
       '/api/dynamicRow/get-data-table',
       queryParameters: {'nombre_de_tabla': 'time_reports'},
     );
 
-    final body = _asMap(resp.data);
+    final body = _asMap(response.data);
     _ensureOk(body);
 
-    return _asListOfMap(body['data']);
+    return _asListOfMap(body['data']).map(TimeReportModel.fromJson).toList();
   }
 
   @override
   Future<void> createTimeReport({required Map<String, dynamic> payload}) async {
-    final resp = await _apiDio.post(
+    final response = await _apiDio.post(
       '/api/dynamicRow/create-row',
       data: {'nombre_de_tabla': 'time_reports', 'data': payload},
     );
 
-    final body = _asMap(resp.data);
+    final body = _asMap(response.data);
     _ensureOk(body);
   }
 
@@ -104,12 +105,12 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
     required String userId,
     required Map<String, dynamic> diffPayload,
   }) async {
-    final resp = await _loginDio.put(
+    final response = await _loginDio.put(
       '/api/v1/users/dynamicRowLogin/update-row',
       data: {'nombre_de_tabla': 'users', 'id': userId, 'data': diffPayload},
     );
 
-    final body = _asMap(resp.data);
+    final body = _asMap(response.data);
     _ensureOk(body);
   }
 }

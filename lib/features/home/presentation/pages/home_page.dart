@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../providers/home_providers.dart';
-import '../state/home_state.dart';
+import '../controllers/home_state.dart';
+import '../widgets/home_page_sections.dart';
 import '../widgets/offline_banner_in_appbar.dart';
 import '../widgets/work_orders_list_widget.dart';
 
@@ -35,7 +36,7 @@ class _HomePageState extends ConsumerState<HomePage> {
         final isOffline = internetAsync.when(
           data: (status) => status == InternetStatus.offline,
           loading: () => false,
-          error: (_, __) => false,
+          error: (error, stackTrace) => false,
         );
 
         await notifier.fetchUser();
@@ -199,7 +200,7 @@ class _HomePageState extends ConsumerState<HomePage> {
     final isOffline = internetAsync.when(
       data: (status) => status == InternetStatus.offline,
       loading: () => false,
-      error: (_, __) => false,
+      error: (error, stackTrace) => false,
     );
 
     final buttonText = isOffline
@@ -230,7 +231,7 @@ class _HomePageState extends ConsumerState<HomePage> {
               .when(
                 data: (status) => status == InternetStatus.offline,
                 loading: () => false,
-                error: (_, __) => false,
+                error: (error, stackTrace) => false,
               );
 
           await notifier.fetchUser();
@@ -241,7 +242,7 @@ class _HomePageState extends ConsumerState<HomePage> {
           physics: const AlwaysScrollableScrollPhysics(),
           padding: EdgeInsets.zero,
           children: [
-            _KapturaHeader(userName: userName, isOffline: isOffline),
+            HomePageHeader(userName: userName, isOffline: isOffline),
             const SizedBox(height: 14),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -252,10 +253,10 @@ class _HomePageState extends ConsumerState<HomePage> {
                       state.errorMessage != null)
                     Padding(
                       padding: const EdgeInsets.only(bottom: 12),
-                      child: _ErrorCard(message: state.errorMessage!),
+                      child: HomePageErrorCard(message: state.errorMessage!),
                     ),
 
-                  _SectionCard(
+                  HomePageSectionCard(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
@@ -333,7 +334,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                                     borderRadius: BorderRadius.circular(10),
                                   ),
                                   child: Icon(
-                                    (latestTimeReport['type'] == 'clock_in')
+                                    (latestTimeReport.type == 'clock_in')
                                         ? Icons.login_rounded
                                         : Icons.logout_rounded,
                                     size: 18,
@@ -347,9 +348,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                                         CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        _mapClockType(
-                                          latestTimeReport['type']?.toString(),
-                                        ),
+                                        _mapClockType(latestTimeReport.type),
                                         style: const TextStyle(
                                           fontWeight: FontWeight.w800,
                                           fontSize: 13.5,
@@ -358,9 +357,9 @@ class _HomePageState extends ConsumerState<HomePage> {
                                       ),
                                       const SizedBox(height: 2),
                                       Text(
-                                        (latestTimeReport['atLocal'] ??
-                                                'Sin hora')
-                                            .toString(),
+                                        latestTimeReport.atLocalLabel.isEmpty
+                                            ? 'Sin hora'
+                                            : latestTimeReport.atLocalLabel,
                                         style: TextStyle(
                                           color: const Color(
                                             0xFF0B2A4A,
@@ -435,7 +434,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                                         coords: coords,
                                         reason: reason,
                                       );
-                                      if (!mounted) return;
+                                      if (!context.mounted) return;
 
                                       ScaffoldMessenger.of(
                                         context,
@@ -556,135 +555,6 @@ class _ReasonDialog extends StatefulWidget {
 
   @override
   State<_ReasonDialog> createState() => _ReasonDialogState();
-}
-
-class _KapturaHeader extends StatelessWidget {
-  const _KapturaHeader({required this.userName, required this.isOffline});
-
-  final String userName;
-  final bool isOffline;
-
-  @override
-  Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        Container(
-          height: 150,
-          decoration: const BoxDecoration(color: Color(0xFF0B2A4A)),
-        ),
-        Positioned(
-          left: 0,
-          right: 0,
-          bottom: 0,
-          child: Container(
-            height: 55,
-            decoration: const BoxDecoration(
-              color: Color(0xFFF6F7FB),
-              borderRadius: BorderRadius.vertical(
-                top: Radius.elliptical(700, 120),
-              ),
-            ),
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 18, 16, 0),
-          child: Row(
-            children: [
-              CircleAvatar(
-                radius: 22,
-                backgroundColor: Colors.white.withValues(alpha: 0.14),
-                child: Text(
-                  _initials(userName),
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  'Hola, $userName',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-              ),
-              if (isOffline)
-                Icon(
-                  Icons.wifi_off_rounded,
-                  color: Colors.white.withValues(alpha: 0.85),
-                ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  static String _initials(String text) {
-    final clean = text.trim();
-    if (clean.isEmpty) return '?';
-    final parts = clean
-        .split(RegExp(r'\s+'))
-        .where((e) => e.isNotEmpty)
-        .toList();
-    final first = parts.isNotEmpty ? parts[0][0] : '';
-    final second = parts.length > 1 ? parts[1][0] : '';
-    final out = (first + second).toUpperCase();
-    return out.isEmpty ? '?' : out;
-  }
-}
-
-class _SectionCard extends StatelessWidget {
-  const _SectionCard({required this.child});
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: Colors.black.withValues(alpha: 0.05)),
-        boxShadow: [
-          BoxShadow(
-            blurRadius: 18,
-            offset: const Offset(0, 10),
-            color: Colors.black.withValues(alpha: 0.06),
-          ),
-        ],
-      ),
-      child: child,
-    );
-  }
-}
-
-class _ErrorCard extends StatelessWidget {
-  const _ErrorCard({required this.message});
-  final String message;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.red.withValues(alpha: 0.07),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: Colors.red.withValues(alpha: 0.22)),
-      ),
-      child: Text(
-        message,
-        style: const TextStyle(color: Colors.red, fontWeight: FontWeight.w600),
-      ),
-    );
-  }
 }
 
 class _ReasonDialogState extends State<_ReasonDialog> {

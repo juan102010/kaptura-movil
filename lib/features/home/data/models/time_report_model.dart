@@ -1,30 +1,31 @@
-class TimeReportModel {
+import '../../domain/entities/time_report_entity.dart';
+
+class TimeReportModel extends TimeReportEntity {
   const TimeReportModel({
-    required this.id,
-    required this.userId,
-    required this.type,
-    required this.atISO,
-    required this.coords,
-    required this.reason,
+    required super.id,
+    required super.userId,
+    required super.type,
+    required super.atIso,
+    required super.coords,
+    required super.reason,
+    required super.rawData,
   });
 
-  final String id;
-  final String userId;
-  final String type;
-  final String atISO;
-  final Map<String, dynamic> coords;
-  final String? reason;
-
   factory TimeReportModel.fromJson(Map<String, dynamic> json) {
+    final coords = json['coords'];
+
     return TimeReportModel(
       id: (json['_id'] ?? '').toString(),
       userId: (json['userId'] ?? '').toString(),
       type: (json['type'] ?? '').toString(),
-      atISO: (json['atISO'] ?? '').toString(),
-      coords: (json['coords'] is Map<String, dynamic>)
-          ? (json['coords'] as Map<String, dynamic>)
+      atIso: (json['atISO'] ?? '').toString(),
+      coords: coords is Map<String, dynamic>
+          ? Map<String, dynamic>.from(coords)
+          : coords is Map
+          ? coords.cast<String, dynamic>()
           : <String, dynamic>{},
       reason: json['reason']?.toString(),
+      rawData: Map<String, dynamic>.from(json),
     );
   }
 }

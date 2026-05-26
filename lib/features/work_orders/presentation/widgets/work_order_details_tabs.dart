@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../app/di/providers.dart';
+import '../../../customers/domain/entities/customer_entity.dart';
+import '../../../projects/domain/entities/project_entity.dart';
+import '../../../users/domain/entities/user_list_entity.dart';
+import '../../domain/entities/work_order_entity.dart';
 import 'work_order_customer_sheets.dart';
 import 'work_order_details_shared_widgets.dart';
 import 'work_order_history_widgets.dart';
@@ -16,35 +20,33 @@ class GeneralTab extends ConsumerWidget {
     required this.projects,
   });
 
-  final Map<String, dynamic> wo;
-  final List<Map<String, dynamic>> users;
-  final List<Map<String, dynamic>> customers;
-  final List<Map<String, dynamic>> projects;
+  final WorkOrderEntity wo;
+  final List<UserListEntity> users;
+  final List<CustomerEntity> customers;
+  final List<ProjectEntity> projects;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final assignedText = _assignedToText(
       ref: ref,
-      assignedValue: wo['text_assigned_id'],
+      assignedIds: wo.assignedIds,
       users: users,
     );
 
     final customerResolved = _resolveCustomer(
       ref: ref,
-      customerId: wo['sel_customer_id'],
+      customerId: wo.customerId,
       customers: customers,
     );
 
     final projectText = _projectToText(
       ref: ref,
-      projectId: wo['sel_project_id'],
+      projectId: wo.projectId,
       projects: projects,
     );
 
     final customer = customerResolved.customer;
-    final customerTitle = customer == null
-        ? ''
-        : _resolveCustomerDisplayName(customer);
+    final customerTitle = customer?.displayName ?? '';
     final customerRows = customer == null
         ? <DisplayRowData>[]
         : _buildCustomerSummaryRows(customer);
@@ -53,7 +55,7 @@ class GeneralTab extends ConsumerWidget {
         : _extractServiceNotes(customer);
 
     return WorkOrderSection(
-      title: 'Información General',
+      title: 'Informacion General',
       children: [
         WorkOrderFieldRow(
           icon: Icons.business_rounded,
@@ -73,7 +75,6 @@ class GeneralTab extends ConsumerWidget {
                   );
                 },
         ),
-
         if (customer != null && customerNotes.isNotEmpty)
           WorkOrderActionButtonRow(
             icon: Icons.key_rounded,
@@ -86,7 +87,6 @@ class GeneralTab extends ConsumerWidget {
               );
             },
           ),
-
         WorkOrderFieldRow(
           icon: Icons.account_tree_rounded,
           label: 'Proyecto',
@@ -100,21 +100,20 @@ class GeneralTab extends ConsumerWidget {
         WorkOrderFieldRow(
           icon: Icons.layers_rounded,
           label: 'Clase',
-          value: WorkOrderDetailsUiUtils.s(wo['sel_class_id']),
+          value: wo.className,
         ),
         WorkOrderFieldRow(
           icon: Icons.category_rounded,
           label: 'Tipo',
-          value: WorkOrderDetailsUiUtils.s(wo['sel_type_id']),
+          value: wo.typeName,
         ),
       ],
     );
   }
 
-  List<DisplayRowData> _buildCustomerSummaryRows(
-    Map<String, dynamic> customer,
-  ) {
+  List<DisplayRowData> _buildCustomerSummaryRows(CustomerEntity customer) {
     final rows = <DisplayRowData>[];
+    final raw = customer.rawData;
 
     void addRow(String label, dynamic value) {
       final text = _stringifyValue(value);
@@ -122,23 +121,21 @@ class GeneralTab extends ConsumerWidget {
       rows.add(DisplayRowData(label: label, value: text));
     }
 
-    addRow('Nombre cliente', customer['text_custName_id']);
-    addRow('Tipo cliente', customer['rad_clientType_id']);
-    addRow('Primer nombre', customer['text_firstName_id']);
-    addRow('Apellido', customer['text_lastName_id']);
-    addRow('Correo principal', customer['text_mainEmail_id']);
-    addRow('Celular', customer['text_mobile_id']);
-    addRow('Teléfono principal', customer['text_mainPhone_id']);
-    addRow('Dirección', customer['text_street_id']);
+    addRow('Nombre cliente', raw['text_custName_id']);
+    addRow('Tipo cliente', raw['rad_clientType_id']);
+    addRow('Primer nombre', raw['text_firstName_id']);
+    addRow('Apellido', raw['text_lastName_id']);
+    addRow('Correo principal', raw['text_mainEmail_id']);
+    addRow('Celular', raw['text_mobile_id']);
+    addRow('Telefono principal', raw['text_mainPhone_id']);
+    addRow('Direccion', raw['text_street_id']);
 
     return rows;
   }
 
-  List<ServiceCategoryNote> _extractServiceNotes(
-    Map<String, dynamic> customer,
-  ) {
+  List<ServiceCategoryNote> _extractServiceNotes(CustomerEntity customer) {
     final result = <ServiceCategoryNote>[];
-    final raw = customer['obj_categoriesOfServices_id'];
+    final raw = customer.rawData['obj_categoriesOfServices_id'];
 
     if (raw is! Map) return result;
 
@@ -147,18 +144,14 @@ class GeneralTab extends ConsumerWidget {
       final value = entry.value;
 
       if (value is! List || value.isEmpty) continue;
-
       final first = value.first;
       if (first is! Map) continue;
-
-      final message = _stringifyValue(first['message']);
-      final images = _normalizeImages(first['images']);
 
       result.add(
         ServiceCategoryNote(
           categoryName: categoryName,
-          message: message,
-          images: images,
+          message: _stringifyValue(first['message']),
+          images: _normalizeImages(first['images']),
         ),
       );
     }
@@ -168,79 +161,60 @@ class GeneralTab extends ConsumerWidget {
 
   List<Map<String, dynamic>> _normalizeImages(dynamic value) {
     if (value is! List) return <Map<String, dynamic>>[];
-
     return value
         .whereType<Map>()
-        .map((e) => Map<String, dynamic>.from(e))
+        .map((item) => Map<String, dynamic>.from(item))
         .toList();
   }
 
   String _stringifyValue(dynamic value) {
     if (value == null) return '';
-
     if (value is List) {
-      final items = value
-          .map((e) => e == null ? '' : e.toString().trim())
-          .where((e) => e.isNotEmpty)
-          .toList();
-      return items.join(', ');
+      return value
+          .map((item) => item == null ? '' : item.toString().trim())
+          .where((item) => item.isNotEmpty)
+          .join(', ');
     }
-
-    if (value is Map) {
-      return value.toString();
-    }
-
+    if (value is Map) return value.toString();
     return value.toString().trim();
   }
 
   String _assignedToText({
     required WidgetRef ref,
-    required dynamic assignedValue,
-    required List<Map<String, dynamic>> users,
+    required List<String> assignedIds,
+    required List<UserListEntity> users,
   }) {
     final logger = ref.watch(loggerProvider);
-    final ids = _normalizeAssignedIds(assignedValue);
-
-    logger.i(
-      '[GeneralTab][users] assignedValue=$assignedValue '
-      '(${assignedValue?.runtimeType}) | idsNormalizados=$ids',
-    );
-
-    if (ids.isEmpty) return '';
+    logger.i('[GeneralTab][users] idsNormalizados=$assignedIds');
+    if (assignedIds.isEmpty) return '';
 
     final userMap = <String, String>{};
-
     for (final user in users) {
-      final id = (user['_id'] ?? '').toString().trim();
+      final id = user.id.trim();
       if (id.isEmpty) continue;
-
-      final name = _resolveUserDisplayName(user);
+      final name = user.name.isEmpty ? user.email : user.name;
       userMap[id] = name.isEmpty ? id : name;
     }
 
-    final resolved = ids.map((id) => userMap[id] ?? id).toList();
-    final result = resolved.join(', ');
-
+    final result = assignedIds.map((id) => userMap[id] ?? id).join(', ');
     logger.i('[GeneralTab][users] Resultado final assignedText=$result');
     return result;
   }
 
   ResolvedCustomer _resolveCustomer({
     required WidgetRef ref,
-    required dynamic customerId,
-    required List<Map<String, dynamic>> customers,
+    required String customerId,
+    required List<CustomerEntity> customers,
   }) {
     final logger = ref.watch(loggerProvider);
-    final id = WorkOrderDetailsUiUtils.s(customerId);
-
+    final id = customerId.trim();
     if (id.isEmpty) {
       return const ResolvedCustomer(displayText: '', customer: null);
     }
 
-    Map<String, dynamic>? foundCustomer;
+    CustomerEntity? foundCustomer;
     for (final customer in customers) {
-      final currentId = (customer['_id'] ?? '').toString().trim();
-      if (currentId == id) {
+      if (customer.matchesId(id)) {
         foundCustomer = customer;
         break;
       }
@@ -248,13 +222,10 @@ class GeneralTab extends ConsumerWidget {
 
     final displayText = foundCustomer == null
         ? id
-        : (_resolveCustomerDisplayName(foundCustomer).isEmpty
-              ? id
-              : _resolveCustomerDisplayName(foundCustomer));
+        : (foundCustomer.displayName.isEmpty ? id : foundCustomer.displayName);
 
     logger.i(
-      '[GeneralTab][customers] customerId=$id -> displayText=$displayText '
-      '| found=${foundCustomer != null}',
+      '[GeneralTab][customers] customerId=$id -> displayText=$displayText | found=${foundCustomer != null}',
     );
 
     return ResolvedCustomer(displayText: displayText, customer: foundCustomer);
@@ -262,160 +233,68 @@ class GeneralTab extends ConsumerWidget {
 
   String _projectToText({
     required WidgetRef ref,
-    required dynamic projectId,
-    required List<Map<String, dynamic>> projects,
+    required String projectId,
+    required List<ProjectEntity> projects,
   }) {
     final logger = ref.watch(loggerProvider);
-    final id = WorkOrderDetailsUiUtils.s(projectId);
+    final id = projectId.trim();
     if (id.isEmpty) return '';
 
     final projectMap = <String, String>{};
-
     for (final project in projects) {
-      final pid = (project['_id'] ?? '').toString().trim();
+      final pid = project.id.trim();
       if (pid.isEmpty) continue;
-
-      final name = _resolveProjectDisplayName(project);
-      projectMap[pid] = name.isEmpty ? pid : name;
+      projectMap[pid] = project.name.isEmpty ? pid : project.name;
     }
 
     final result = projectMap[id] ?? id;
     logger.i('[GeneralTab][projects] projectId=$id -> $result');
     return result;
   }
-
-  List<String> _normalizeAssignedIds(dynamic value) {
-    if (value == null) return <String>[];
-
-    if (value is String) {
-      final v = value.trim();
-      return v.isEmpty ? <String>[] : <String>[v];
-    }
-
-    if (value is List) {
-      return value
-          .map((e) => e.toString().trim())
-          .where((e) => e.isNotEmpty)
-          .toList();
-    }
-
-    final fallback = value.toString().trim();
-    return fallback.isEmpty ? <String>[] : <String>[fallback];
-  }
-
-  String _resolveUserDisplayName(Map<String, dynamic> user) {
-    final candidates = [
-      user['name'],
-      user['nombre'],
-      user['fullName'],
-      user['displayName'],
-      user['text_name_id'],
-      user['text_fullName_id'],
-      user['email'],
-    ];
-
-    for (final candidate in candidates) {
-      final value = (candidate ?? '').toString().trim();
-      if (value.isNotEmpty) return value;
-    }
-
-    return '';
-  }
-
-  String _resolveCustomerDisplayName(Map<String, dynamic> customer) {
-    final candidates = [
-      customer['text_custName_id'],
-      customer['name'],
-      customer['nombre'],
-      customer['displayName'],
-      customer['fullName'],
-      customer['text_firstName_id'],
-      customer['text_companyName_id'],
-      customer['text_mainEmail_id'],
-      customer['email'],
-    ];
-
-    for (final candidate in candidates) {
-      final value = (candidate ?? '').toString().trim();
-      if (value.isNotEmpty) return value;
-    }
-
-    final firstName = (customer['text_firstName_id'] ?? '').toString().trim();
-    final lastName = (customer['text_lastName_id'] ?? '').toString().trim();
-    final joined = '$firstName $lastName'.trim();
-
-    if (joined.isNotEmpty) return joined;
-
-    return '';
-  }
-
-  String _resolveProjectDisplayName(Map<String, dynamic> project) {
-    final candidates = [
-      project['text_nameProject_id'],
-      project['name'],
-      project['nombre'],
-      project['displayName'],
-      project['text_projectName_id'],
-    ];
-
-    for (final candidate in candidates) {
-      final value = (candidate ?? '').toString().trim();
-      if (value.isNotEmpty) return value;
-    }
-
-    return '';
-  }
 }
 
 class TimeTab extends StatefulWidget {
   const TimeTab({super.key, required this.wo});
 
-  final Map<String, dynamic> wo;
+  final WorkOrderEntity wo;
 
   @override
   State<TimeTab> createState() => _TimeTabState();
 }
 
 class _TimeTabState extends State<TimeTab> {
-  late Map<String, dynamic> _woLocal;
+  late WorkOrderEntity _woLocal;
 
   @override
   void initState() {
     super.initState();
-    _woLocal = Map<String, dynamic>.from(widget.wo);
+    _woLocal = widget.wo;
   }
 
   @override
   void didUpdateWidget(covariant TimeTab oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.wo.toString() != widget.wo.toString()) {
-      _woLocal = Map<String, dynamic>.from(widget.wo);
+    if (oldWidget.wo.rawData.toString() != widget.wo.rawData.toString()) {
+      _woLocal = widget.wo;
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final workOrderId = WorkOrderDetailsUiUtils.s(_woLocal['_id']);
-    final start = WorkOrderDetailsUiUtils.s(_woLocal['date_start_id']);
-    final end = WorkOrderDetailsUiUtils.s(_woLocal['date_end_id']);
-
-    final rawHistory = _woLocal['text_dateTime_id'];
-    final historyItems = rawHistory is List
-        ? rawHistory
-              .whereType<Map>()
-              .map((e) => Map<String, dynamic>.from(e))
-              .toList()
-        : <Map<String, dynamic>>[];
+    final workOrderId = _woLocal.id;
+    final start = WorkOrderDetailsUiUtils.s(_woLocal.rawData['date_start_id']);
+    final end = WorkOrderDetailsUiUtils.s(_woLocal.rawData['date_end_id']);
+    final historyItems = _woLocal.timeHistory;
 
     return WorkOrderSection(
-      title: 'Tiempo y Programación',
+      title: 'Tiempo y Programacion',
       children: [
         WorkOrderTimerCard(
           workOrderId: workOrderId,
           history: historyItems,
           onHistoryUpdated: (newHistory) {
             setState(() {
-              _woLocal['text_dateTime_id'] = newHistory;
+              _woLocal = _woLocal.withUpdatedTimeHistory(newHistory);
             });
           },
         ),
@@ -438,27 +317,27 @@ class _TimeTabState extends State<TimeTab> {
 class TechTab extends StatelessWidget {
   const TechTab({super.key, required this.wo});
 
-  final Map<String, dynamic> wo;
+  final WorkOrderEntity wo;
 
   @override
   Widget build(BuildContext context) {
     return WorkOrderSection(
-      title: 'Detalles Técnicos',
+      title: 'Detalles Tecnicos',
       children: [
         WorkOrderFieldRow(
           icon: Icons.description_outlined,
-          label: 'Notas técnicas',
-          value: WorkOrderDetailsUiUtils.s(wo['text_workTechNotes_id']),
+          label: 'Notas tecnicas',
+          value: wo.techNotes,
         ),
         WorkOrderFieldRow(
           icon: Icons.checklist_rounded,
           label: 'Tareas',
-          value: WorkOrderDetailsUiUtils.s(wo['text_tasks_id']),
+          value: wo.tasks,
         ),
         WorkOrderFieldRow(
           icon: Icons.rule_folder_rounded,
           label: 'To Do',
-          value: WorkOrderDetailsUiUtils.s(wo['text_toDo_id']),
+          value: wo.todo,
         ),
       ],
     );
@@ -468,17 +347,17 @@ class TechTab extends StatelessWidget {
 class LocationTab extends StatelessWidget {
   const LocationTab({super.key, required this.wo});
 
-  final Map<String, dynamic> wo;
+  final WorkOrderEntity wo;
 
   @override
   Widget build(BuildContext context) {
     return WorkOrderSection(
-      title: 'Ubicación',
+      title: 'Ubicacion',
       children: [
         WorkOrderFieldRow(
           icon: Icons.location_on_outlined,
           label: 'Lugar de trabajo',
-          value: WorkOrderDetailsUiUtils.s(wo['text_workLocation_id']),
+          value: wo.workLocation,
         ),
       ],
     );
@@ -488,7 +367,7 @@ class LocationTab extends StatelessWidget {
 class PartsTab extends StatelessWidget {
   const PartsTab({super.key, required this.wo});
 
-  final Map<String, dynamic> wo;
+  final WorkOrderEntity wo;
 
   @override
   Widget build(BuildContext context) {
@@ -498,22 +377,22 @@ class PartsTab extends StatelessWidget {
         WorkOrderFieldRow(
           icon: Icons.inventory_2_outlined,
           label: 'Partes a entregar',
-          value: WorkOrderDetailsUiUtils.s(wo['text_partsToDeliver_id']),
+          value: wo.partsToDeliver,
         ),
         WorkOrderFieldRow(
           icon: Icons.send_rounded,
           label: 'Solicitar partes',
-          value: WorkOrderDetailsUiUtils.s(wo['text_requestParts_id']),
+          value: wo.requestParts,
         ),
         WorkOrderFieldRow(
           icon: Icons.done_all_rounded,
           label: 'Partes usadas (hecho)',
-          value: WorkOrderDetailsUiUtils.s(wo['text_donePartsUsed_id']),
+          value: wo.donePartsUsed,
         ),
         WorkOrderFieldRow(
           icon: Icons.pending_rounded,
           label: 'Pendiente / Partes necesarias',
-          value: WorkOrderDetailsUiUtils.s(wo['text_leftToDoPartsNeeded_id']),
+          value: wo.leftToDoPartsNeeded,
         ),
       ],
     );
@@ -523,25 +402,22 @@ class PartsTab extends StatelessWidget {
 class EvidenceTab extends StatelessWidget {
   const EvidenceTab({super.key, required this.wo});
 
-  final Map<String, dynamic> wo;
+  final WorkOrderEntity wo;
 
   @override
   Widget build(BuildContext context) {
-    final files = wo['files_infoImagesUpload_id'];
-    final count = (files is List) ? files.length.toString() : '0';
-
     return WorkOrderSection(
       title: 'Evidencias',
       children: [
         WorkOrderFieldRow(
           icon: Icons.image_outlined,
-          label: 'Imágenes adjuntas (cantidad)',
-          value: count,
+          label: 'Imagenes adjuntas (cantidad)',
+          value: wo.evidenceImages.length.toString(),
         ),
         const WorkOrderFieldRow(
           icon: Icons.add_a_photo_outlined,
-          label: 'Adjuntar imágenes',
-          value: 'Pendiente: uploader / cámara (se implementa después).',
+          label: 'Adjuntar imagenes',
+          value: 'Pendiente: uploader / camara (se implementa despues).',
         ),
       ],
     );

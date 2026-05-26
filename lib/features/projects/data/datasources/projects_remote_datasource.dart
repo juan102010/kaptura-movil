@@ -1,5 +1,7 @@
 import 'package:dio/dio.dart';
 
+import '../models/project_model.dart';
+
 class ProjectsRemoteDataSource {
   ProjectsRemoteDataSource({required Dio apiDio}) : _apiDio = apiDio;
 
@@ -15,7 +17,7 @@ class ProjectsRemoteDataSource {
     if (data is List) {
       return data
           .whereType<Map>()
-          .map((e) => e.cast<String, dynamic>())
+          .map((item) => item.cast<String, dynamic>())
           .toList();
     }
     return <Map<String, dynamic>>[];
@@ -29,7 +31,7 @@ class ProjectsRemoteDataSource {
     throw Exception(msg);
   }
 
-  Future<List<Map<String, dynamic>>> getProjects() async {
+  Future<List<ProjectModel>> getProjects() async {
     final resp = await _apiDio.get(
       '/api/dynamicRow/get-data-table',
       queryParameters: {'nombre_de_tabla': 'projects'},
@@ -38,6 +40,6 @@ class ProjectsRemoteDataSource {
     final body = _asMap(resp.data);
     _ensureOk(body);
 
-    return _asListOfMap(body['data']);
+    return _asListOfMap(body['data']).map(ProjectModel.fromMap).toList();
   }
 }

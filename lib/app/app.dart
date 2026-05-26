@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../core/events/app_event.dart';
 import 'di/providers.dart';
 import 'router/app_router.dart';
+import 'theme/app_theme.dart';
 import 'package:toastification/toastification.dart';
 
 class AppRoot extends ConsumerStatefulWidget {
@@ -42,6 +43,7 @@ class _AppRootState extends ConsumerState<AppRoot> {
     return MaterialApp.router(
       debugShowCheckedModeBanner: false,
       routerConfig: router,
+      theme: AppTheme.light(),
       builder: (context, child) {
         return ToastificationWrapper(child: child!);
       },

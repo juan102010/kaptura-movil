@@ -1,6 +1,8 @@
+import '../../domain/entities/project_entity.dart';
 import '../../domain/repositories/projects_repository.dart';
 import '../datasources/projects_local_datasource.dart';
 import '../datasources/projects_remote_datasource.dart';
+import '../models/project_model.dart';
 
 class ProjectsRepositoryImpl implements ProjectsRepository {
   ProjectsRepositoryImpl({
@@ -13,17 +15,19 @@ class ProjectsRepositoryImpl implements ProjectsRepository {
   final ProjectsLocalDataSource _localDataSource;
 
   @override
-  Future<List<Map<String, dynamic>>> getProjectsRemote() {
+  Future<List<ProjectEntity>> getProjectsRemote() {
     return _remoteDataSource.getProjects();
   }
 
   @override
-  Future<void> saveProjectsCache(List<Map<String, dynamic>> rawProjects) {
-    return _localDataSource.upsertProjectsCache(rawProjects);
+  Future<void> saveProjectsCache(List<ProjectEntity> projects) {
+    return _localDataSource.upsertProjectsCache(
+      projects.map((item) => ProjectModel.fromMap(item.rawData)).toList(),
+    );
   }
 
   @override
-  Future<List<Map<String, dynamic>>> getProjectsCache() {
+  Future<List<ProjectEntity>> getProjectsCache() {
     return _localDataSource.getProjectsCacheRaw();
   }
 

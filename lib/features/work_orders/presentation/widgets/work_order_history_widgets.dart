@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/localization/localization_extension.dart';
 import '../../domain/entities/work_order_time_entry_entity.dart';
 import 'work_order_details_shared_widgets.dart';
 
@@ -12,7 +13,7 @@ class WorkOrderHistorySummaryRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return WorkOrderFieldRow(
       icon: Icons.history_rounded,
-      label: 'Historial (registros)',
+      label: context.l10n.historyRecords,
       value: history.length.toString(),
       showChevron: true,
       onTap: () {
@@ -82,10 +83,10 @@ class WorkOrderHistorySheet extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(width: 12),
-                      const Expanded(
+                      Expanded(
                         child: Text(
-                          'Historial de tiempo',
-                          style: TextStyle(
+                          context.l10n.timeHistory,
+                          style: const TextStyle(
                             fontSize: 17,
                             fontWeight: FontWeight.w900,
                             color: WorkOrderDetailsColors.brand,
@@ -116,7 +117,7 @@ class WorkOrderHistorySheet extends StatelessWidget {
                 const Divider(height: 1),
                 Expanded(
                   child: history.isEmpty
-                      ? const Center(child: Text('No hay registros de tiempo.'))
+                      ? Center(child: Text(context.l10n.noTimeRecords))
                       : ListView.separated(
                           controller: scrollController,
                           padding: const EdgeInsets.all(16),
@@ -151,8 +152,8 @@ class _WorkOrderHistoryItemCard extends StatelessWidget {
     final dateEnd = (item.dateEnd ?? '').trim();
 
     final minutesText = item.minutes == null
-        ? 'En curso'
-        : '${item.minutes.toString().trim()} min';
+        ? context.l10n.ongoing
+        : context.l10n.minutesShort(item.minutes.toString().trim());
 
     return Container(
       padding: const EdgeInsets.all(14),
@@ -175,7 +176,9 @@ class _WorkOrderHistoryItemCard extends StatelessWidget {
             children: [
               Expanded(
                 child: Text(
-                  optionSelect.isEmpty ? 'Registro' : optionSelect,
+                  optionSelect.isEmpty
+                      ? context.l10n.record
+                      : context.localizeWorkActivity(optionSelect),
                   style: const TextStyle(
                     fontWeight: FontWeight.w900,
                     color: WorkOrderDetailsColors.brand,
@@ -206,12 +209,12 @@ class _WorkOrderHistoryItemCard extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           ModalInfoRow(
-            label: 'Inicio',
+            label: context.l10n.start,
             value: dateInit.isEmpty ? '—' : dateInit,
           ),
           ModalInfoRow(
-            label: 'Fin',
-            value: dateEnd.isEmpty ? 'En curso' : dateEnd,
+            label: context.l10n.end,
+            value: dateEnd.isEmpty ? context.l10n.ongoing : dateEnd,
           ),
         ],
       ),

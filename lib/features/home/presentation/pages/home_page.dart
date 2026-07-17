@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 
 import '../providers/home_providers.dart';
 import '../controllers/home_state.dart';
@@ -12,6 +13,7 @@ import '../../domain/entities/clock_coords.dart';
 import '../../../../app/di/providers.dart';
 import '../../../../core/network/internet_status.dart';
 import '../../../../core/services/location_service.dart';
+import '../../../../core/localization/localization_extension.dart';
 
 class HomePage extends ConsumerStatefulWidget {
   const HomePage({super.key});
@@ -65,19 +67,16 @@ class _HomePageState extends ConsumerState<HomePage> {
       final go = await showDialog<bool>(
         context: context,
         builder: (ctx) => AlertDialog(
-          title: const Text('Ubicación desactivada'),
-          content: const Text(
-            'Para registrar Clock In/Out necesitas activar la ubicación. '
-            '¿Deseas abrir los ajustes de ubicación?',
-          ),
+          title: Text(context.l10n.locationDisabled),
+          content: Text(context.l10n.locationDisabledMessage),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx, false),
-              child: const Text('Ahora no'),
+              child: Text(context.l10n.notNow),
             ),
             ElevatedButton(
               onPressed: () => Navigator.pop(ctx, true),
-              child: const Text('Abrir ajustes'),
+              child: Text(context.l10n.openSettings),
             ),
           ],
         ),
@@ -102,19 +101,16 @@ class _HomePageState extends ConsumerState<HomePage> {
       context: context,
       barrierDismissible: false,
       builder: (ctx) => AlertDialog(
-        title: const Text('Permiso requerido'),
-        content: const Text(
-          'El permiso de ubicación fue denegado permanentemente. '
-          'Debes habilitarlo en Ajustes para poder registrar Clock In/Out.',
-        ),
+        title: Text(context.l10n.permissionRequired),
+        content: Text(context.l10n.locationPermissionMessage),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancelar'),
+            child: Text(context.l10n.cancel),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Abrir Ajustes'),
+            child: Text(context.l10n.openSettings),
           ),
         ],
       ),
@@ -130,16 +126,16 @@ class _HomePageState extends ConsumerState<HomePage> {
     final res = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Confirmación'),
-        content: const Text('¿Deseas hacer Clock Out?'),
+        title: Text(context.l10n.confirmation),
+        content: Text(context.l10n.clockOutConfirmation),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancelar'),
+            child: Text(context.l10n.cancel),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Sí, Clock Out'),
+            child: Text(context.l10n.yesClockOut),
           ),
         ],
       ),
@@ -160,12 +156,12 @@ class _HomePageState extends ConsumerState<HomePage> {
     await showDialog<void>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Atención'),
+        title: Text(context.l10n.attention),
         content: Text(message),
         actions: [
           ElevatedButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('OK'),
+            child: Text(context.l10n.ok),
           ),
         ],
       ),
@@ -175,11 +171,11 @@ class _HomePageState extends ConsumerState<HomePage> {
   String _mapClockType(String? type) {
     switch (type) {
       case 'clock_in':
-        return 'Último registro: Clock In';
+        return context.l10n.lastClockIn;
       case 'clock_out':
-        return 'Último registro: Clock Out';
+        return context.l10n.lastClockOut;
       default:
-        return 'Último registro';
+        return context.l10n.lastRecord;
     }
   }
 
@@ -191,9 +187,14 @@ class _HomePageState extends ConsumerState<HomePage> {
     final isLoading = state.loadingUser;
     final isSaving = state.savingClock;
 
-    final userName = state.user?.name ?? 'Usuario';
+    final userName = state.user?.name ?? context.l10n.user;
     final stateClock = state.user?.stateClock ?? false;
     final latestTimeReport = state.latestTimeReport;
+    final latestTimeReportLabel = latestTimeReport?.atDateTime == null
+        ? (latestTimeReport?.atLocalLabel ?? '')
+        : DateFormat.yMd(
+            Localizations.localeOf(context).languageCode,
+          ).add_jm().format(latestTimeReport!.atDateTime!.toLocal());
 
     final internetAsync = ref.watch(homeInternetStatusProvider);
 
@@ -204,8 +205,8 @@ class _HomePageState extends ConsumerState<HomePage> {
     );
 
     final buttonText = isOffline
-        ? 'Sin internet'
-        : (stateClock ? 'Clock Out' : 'Clock In');
+        ? context.l10n.noInternet
+        : (stateClock ? context.l10n.clockOut : context.l10n.clockIn);
 
     return Scaffold(
       backgroundColor: const Color(0xFFF6F7FB),
@@ -253,7 +254,9 @@ class _HomePageState extends ConsumerState<HomePage> {
                       state.errorMessage != null)
                     Padding(
                       padding: const EdgeInsets.only(bottom: 12),
-                      child: HomePageErrorCard(message: state.errorMessage!),
+                      child: HomePageErrorCard(
+                        message: context.localizeError(state.errorMessage!),
+                      ),
                     ),
 
                   HomePageSectionCard(
@@ -278,8 +281,8 @@ class _HomePageState extends ConsumerState<HomePage> {
                             Expanded(
                               child: Text(
                                 stateClock
-                                    ? 'Jornada activa'
-                                    : 'Sin jornada activa',
+                                    ? context.l10n.activeWorkday
+                                    : context.l10n.noActiveWorkday,
                                 style: const TextStyle(
                                   fontWeight: FontWeight.w800,
                                   fontSize: 16,
@@ -300,9 +303,9 @@ class _HomePageState extends ConsumerState<HomePage> {
                                     color: Colors.red.withValues(alpha: 0.20),
                                   ),
                                 ),
-                                child: const Text(
-                                  'Offline',
-                                  style: TextStyle(
+                                child: Text(
+                                  context.l10n.offline,
+                                  style: const TextStyle(
                                     color: Colors.red,
                                     fontWeight: FontWeight.w700,
                                     fontSize: 12,
@@ -357,9 +360,9 @@ class _HomePageState extends ConsumerState<HomePage> {
                                       ),
                                       const SizedBox(height: 2),
                                       Text(
-                                        latestTimeReport.atLocalLabel.isEmpty
-                                            ? 'Sin hora'
-                                            : latestTimeReport.atLocalLabel,
+                                        latestTimeReportLabel.isEmpty
+                                            ? context.l10n.noTime
+                                            : latestTimeReportLabel,
                                         style: TextStyle(
                                           color: const Color(
                                             0xFF0B2A4A,
@@ -442,8 +445,8 @@ class _HomePageState extends ConsumerState<HomePage> {
                                         SnackBar(
                                           content: Text(
                                             nextAction == 'clock_in'
-                                                ? 'Clock In registrado'
-                                                : 'Clock Out registrado',
+                                                ? context.l10n.clockInRecorded
+                                                : context.l10n.clockOutRecorded,
                                           ),
                                         ),
                                       );
@@ -499,10 +502,10 @@ class _HomePageState extends ConsumerState<HomePage> {
                         const SizedBox(height: 8),
                         Text(
                           isOffline
-                              ? 'Conéctate a internet para registrar Clock In/Out.'
+                              ? context.l10n.connectForClock
                               : (stateClock
-                                    ? 'Recuerda hacer Clock Out al finalizar.'
-                                    : 'Haz Clock In para iniciar tu jornada.'),
+                                    ? context.l10n.rememberClockOut
+                                    : context.l10n.clockInToStart),
                           style: TextStyle(
                             color: const Color(
                               0xFF0B2A4A,
@@ -519,9 +522,9 @@ class _HomePageState extends ConsumerState<HomePage> {
 
                   Row(
                     children: [
-                      const Text(
-                        'Work Orders de hoy',
-                        style: TextStyle(
+                      Text(
+                        context.l10n.todayWorkOrders,
+                        style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w900,
                           color: Color(0xFF0B2A4A),
@@ -570,7 +573,7 @@ class _ReasonDialogState extends State<_ReasonDialog> {
   void _confirm() {
     final v = _controller.text.trim();
     if (v.isEmpty) {
-      setState(() => _errorText = 'La razón es obligatoria.');
+      setState(() => _errorText = context.l10n.reasonRequiredValidation);
       return;
     }
     Navigator.of(context).pop(v);
@@ -579,21 +582,21 @@ class _ReasonDialogState extends State<_ReasonDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('Razón requerida'),
+      title: Text(context.l10n.reasonRequired),
       content: TextField(
         controller: _controller,
         maxLines: 3,
         decoration: InputDecoration(
-          hintText: 'Escribe la razón del Clock In adicional',
+          hintText: context.l10n.additionalClockInReasonHint,
           errorText: _errorText,
         ),
       ),
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(null),
-          child: const Text('Cancelar'),
+          child: Text(context.l10n.cancel),
         ),
-        ElevatedButton(onPressed: _confirm, child: const Text('Confirmar')),
+        ElevatedButton(onPressed: _confirm, child: Text(context.l10n.confirm)),
       ],
     );
   }

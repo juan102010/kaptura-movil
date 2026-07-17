@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/localization/localization_extension.dart';
+
 class AppScaffoldWithNav extends StatelessWidget {
   final StatefulNavigationShell navigationShell;
 
@@ -75,23 +77,31 @@ class AppScaffoldWithNav extends StatelessWidget {
                   // 0) Work Orders
                   _navItem(
                     selected: current == 0,
-                    label: 'Work Orders',
+                    label: context.l10n.workOrders,
                     icon: Icons.assignment_outlined,
                     selectedIcon: Icons.assignment_rounded,
                   ),
 
-                  // 1) Home
+                  // 1) Home%
                   _navItem(
                     selected: current == 1,
-                    label: 'Home',
+                    label: context.l10n.home,
                     icon: Icons.home_outlined,
                     selectedIcon: Icons.home_rounded,
                   ),
 
-                  // 2) Settings
+                  // 2) Inventory
                   _navItem(
                     selected: current == 2,
-                    label: 'Settings',
+                    label: context.l10n.inventory,
+                    icon: Icons.inventory_2_outlined,
+                    selectedIcon: Icons.inventory_2_rounded,
+                  ),
+
+                  // 3) Settings
+                  _navItem(
+                    selected: current == 3,
+                    label: context.l10n.settings,
                     icon: Icons.settings_outlined,
                     selectedIcon: Icons.settings_rounded,
                   ),

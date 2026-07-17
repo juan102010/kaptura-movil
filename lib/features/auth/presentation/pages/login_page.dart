@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:toastification/toastification.dart';
 
+import '../../../../core/localization/localization_extension.dart';
 import '../controllers/auth_state.dart';
 import '../providers/auth_providers.dart';
 
@@ -78,8 +79,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
           context: context,
           type: ToastificationType.error,
           style: ToastificationStyle.fillColored,
-          title: const Text('Error'),
-          description: Text(next.message),
+          title: Text(context.l10n.error),
+          description: Text(context.localizeError(next.message)),
           alignment: Alignment.topCenter,
           autoCloseDuration: const Duration(seconds: 3),
           borderRadius: BorderRadius.circular(14),
@@ -126,13 +127,13 @@ class _LoginPageState extends ConsumerState<LoginPage> {
               child: Column(
                 children: [
                   const SizedBox(height: 28),
-                  const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 24),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
                     child: Align(
                       alignment: Alignment.centerLeft,
                       child: Text(
-                        'Sign in',
-                        style: TextStyle(
+                        context.l10n.signIn,
+                        style: const TextStyle(
                           fontSize: 34,
                           fontWeight: FontWeight.w800,
                           color: Colors.white,
@@ -158,9 +159,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text(
-                                'Email',
-                                style: TextStyle(
+                              Text(
+                                context.l10n.email,
+                                style: const TextStyle(
                                   fontWeight: FontWeight.w700,
                                   color: Color(0xFF1B2633),
                                 ),
@@ -171,7 +172,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                                 keyboardType: TextInputType.emailAddress,
                                 enabled: !showFormLoading,
                                 decoration: InputDecoration(
-                                  hintText: 'you@email.com',
+                                  hintText: context.l10n.emailHint,
                                   prefixIcon: const Icon(Icons.mail_outline),
                                   filled: true,
                                   fillColor: Colors.white,
@@ -182,17 +183,19 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                                 ),
                                 validator: (v) {
                                   final value = (v ?? '').trim();
-                                  if (value.isEmpty) return 'Ingresa tu correo';
+                                  if (value.isEmpty) {
+                                    return context.l10n.enterEmail;
+                                  }
                                   if (!value.contains('@')) {
-                                    return 'Correo inválido';
+                                    return context.l10n.invalidEmail;
                                   }
                                   return null;
                                 },
                               ),
                               const SizedBox(height: 18),
-                              const Text(
-                                'Password',
-                                style: TextStyle(
+                              Text(
+                                context.l10n.password,
+                                style: const TextStyle(
                                   fontWeight: FontWeight.w700,
                                   color: Color(0xFF1B2633),
                                 ),
@@ -227,10 +230,10 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                                 validator: (v) {
                                   final value = v ?? '';
                                   if (value.isEmpty) {
-                                    return 'Ingresa tu contraseña';
+                                    return context.l10n.enterPassword;
                                   }
                                   if (value.length < 3) {
-                                    return 'Contraseña muy corta';
+                                    return context.l10n.passwordTooShort;
                                   }
                                   return null;
                                 },
@@ -255,9 +258,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                                       197,
                                     ),
                                   ),
-                                  const Text(
-                                    'Remember me',
-                                    style: TextStyle(
+                                  Text(
+                                    context.l10n.rememberMe,
+                                    style: const TextStyle(
                                       color: Color(0xFF1B2633),
                                       fontWeight: FontWeight.w600,
                                     ),
@@ -285,9 +288,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                                             strokeWidth: 2,
                                           ),
                                         )
-                                      : const Text(
-                                          'Login',
-                                          style: TextStyle(
+                                      : Text(
+                                          context.l10n.login,
+                                          style: const TextStyle(
                                             fontSize: 16,
                                             fontWeight: FontWeight.w800,
                                             color: Colors.white,
@@ -314,11 +317,15 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                                                     authControllerProvider
                                                         .notifier,
                                                   )
-                                                  .loginWithBiometrics(),
+                                                  .loginWithBiometrics(
+                                                    reason: context
+                                                        .l10n
+                                                        .biometricReason,
+                                                  ),
                                         icon: const Icon(Icons.fingerprint),
-                                        label: const Text(
-                                          'Login con huella',
-                                          style: TextStyle(
+                                        label: Text(
+                                          context.l10n.biometricLogin,
+                                          style: const TextStyle(
                                             fontSize: 15,
                                             fontWeight: FontWeight.w800,
                                           ),
@@ -363,18 +370,18 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                           ),
                         ],
                       ),
-                      child: const Column(
+                      child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          SizedBox(
+                          const SizedBox(
                             width: 28,
                             height: 28,
                             child: CircularProgressIndicator(strokeWidth: 2.6),
                           ),
-                          SizedBox(height: 14),
+                          const SizedBox(height: 14),
                           Text(
-                            'Validando acceso...',
-                            style: TextStyle(
+                            context.l10n.validatingAccess,
+                            style: const TextStyle(
                               fontSize: 15,
                               fontWeight: FontWeight.w800,
                               color: Color(0xFF1B2633),

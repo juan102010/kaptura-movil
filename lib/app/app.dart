@@ -3,7 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/events/app_event.dart';
+import '../core/constants/locale_constants.dart';
+import '../l10n/generated/app_localizations.dart';
 import 'di/providers.dart';
+import 'localization/locale_controller.dart';
 import 'router/app_router.dart';
 import 'theme/app_theme.dart';
 import 'package:toastification/toastification.dart';
@@ -39,10 +42,15 @@ class _AppRootState extends ConsumerState<AppRoot> {
   @override
   Widget build(BuildContext context) {
     final router = ref.watch(appRouterProvider);
+    final locale = ref.watch(localeControllerProvider);
 
     return MaterialApp.router(
       debugShowCheckedModeBanner: false,
       routerConfig: router,
+      locale: locale,
+      supportedLocales: LocaleConstants.supportedLocales,
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      onGenerateTitle: (context) => AppLocalizations.of(context).appTitle,
       theme: AppTheme.light(),
       builder: (context, child) {
         return ToastificationWrapper(child: child!);

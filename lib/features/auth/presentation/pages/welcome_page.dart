@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/localization/localization_extension.dart';
+
 class WelcomePage extends StatelessWidget {
   const WelcomePage({super.key});
 
@@ -56,9 +58,9 @@ class WelcomePage extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        'Welcome',
-                        style: TextStyle(
+                      Text(
+                        context.l10n.welcome,
+                        style: const TextStyle(
                           fontSize: 36,
                           fontWeight: FontWeight.w800,
                           color: Color(0xFF1B2633),
@@ -66,7 +68,7 @@ class WelcomePage extends StatelessWidget {
                       ),
                       const SizedBox(height: 10),
                       Text(
-                        'Inicia sesión para continuar.',
+                        context.l10n.signInToContinue,
                         style: TextStyle(
                           fontSize: 14,
                           color: Colors.grey.shade700,
@@ -95,18 +97,21 @@ class WelcomePage extends StatelessWidget {
                                 ),
                               ],
                             ),
-                            child: const Row(
+                            child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 Text(
-                                  'Continue',
-                                  style: TextStyle(
+                                  context.l10n.continueLabel,
+                                  style: const TextStyle(
                                     fontWeight: FontWeight.w700,
                                     color: Colors.white,
                                   ),
                                 ),
-                                SizedBox(width: 10),
-                                Icon(Icons.arrow_forward, color: Colors.white),
+                                const SizedBox(width: 10),
+                                const Icon(
+                                  Icons.arrow_forward,
+                                  color: Colors.white,
+                                ),
                               ],
                             ),
                           ),

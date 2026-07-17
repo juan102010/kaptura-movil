@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/localization/localization_extension.dart';
 import '../../../home/presentation/providers/home_providers.dart';
 import '../../domain/entities/work_order_time_entry_entity.dart';
 import '../providers/work_order_action_providers.dart';
@@ -129,10 +130,10 @@ class _WorkOrderTimerCardState extends ConsumerState<WorkOrderTimerCard> {
                   ),
                 ),
                 const SizedBox(width: 12),
-                const Expanded(
+                Expanded(
                   child: Text(
-                    'Timer',
-                    style: TextStyle(
+                    context.l10n.timer,
+                    style: const TextStyle(
                       fontWeight: FontWeight.w900,
                       color: WorkOrderDetailsColors.brand,
                       fontSize: 13,
@@ -157,8 +158,8 @@ class _WorkOrderTimerCardState extends ConsumerState<WorkOrderTimerCard> {
                   children: [
                     Text(
                       activeOption.isEmpty
-                          ? 'Actividad en curso'
-                          : activeOption,
+                          ? context.l10n.activityInProgress
+                          : context.localizeWorkActivity(activeOption),
                       style: const TextStyle(
                         fontWeight: FontWeight.w900,
                         color: WorkOrderDetailsColors.brand,
@@ -168,8 +169,10 @@ class _WorkOrderTimerCardState extends ConsumerState<WorkOrderTimerCard> {
                     const SizedBox(height: 6),
                     Text(
                       activeStart.isEmpty
-                          ? 'Tiempo transcurrido: —'
-                          : 'Tiempo transcurrido: ${_elapsedLabel(activeStart)}',
+                          ? context.l10n.elapsedTime('—')
+                          : context.l10n.elapsedTime(
+                              _elapsedLabel(activeStart),
+                            ),
                       style: TextStyle(
                         color: WorkOrderDetailsColors.brand.withValues(
                           alpha: 0.82,
@@ -186,8 +189,8 @@ class _WorkOrderTimerCardState extends ConsumerState<WorkOrderTimerCard> {
                   Expanded(
                     child: _TimerActionButton(
                       label: actionState.isLoading
-                          ? 'Guardando...'
-                          : 'Pausar actividad',
+                          ? context.l10n.saving
+                          : context.l10n.pauseActivity,
                       icon: Icons.pause_rounded,
                       enabled: !actionState.isLoading,
                       onTap: () =>
@@ -198,8 +201,8 @@ class _WorkOrderTimerCardState extends ConsumerState<WorkOrderTimerCard> {
                   Expanded(
                     child: _TimerActionButton(
                       label: actionState.isLoading
-                          ? 'Guardando...'
-                          : 'Terminar',
+                          ? context.l10n.saving
+                          : context.l10n.finish,
                       icon: Icons.stop_rounded,
                       enabled: !actionState.isLoading,
                       onTap: () => _closeCurrentActivity('Fin de jornada'),
@@ -209,7 +212,7 @@ class _WorkOrderTimerCardState extends ConsumerState<WorkOrderTimerCard> {
               ),
             ] else ...[
               Text(
-                'No hay actividad corriendo actualmente.',
+                context.l10n.noRunningActivity,
                 style: TextStyle(
                   color: WorkOrderDetailsColors.brand.withValues(alpha: 0.70),
                 ),
@@ -220,8 +223,8 @@ class _WorkOrderTimerCardState extends ConsumerState<WorkOrderTimerCard> {
                   Expanded(
                     child: _TimerActionButton(
                       label: actionState.isLoading
-                          ? 'Guardando...'
-                          : 'Iniciar desplazamiento',
+                          ? context.l10n.saving
+                          : context.l10n.startTravel,
                       icon: Icons.directions_car_rounded,
                       enabled: !actionState.isLoading,
                       onTap: () => _startActivity('Inicio de desplazamiento'),
@@ -231,8 +234,8 @@ class _WorkOrderTimerCardState extends ConsumerState<WorkOrderTimerCard> {
                   Expanded(
                     child: _TimerActionButton(
                       label: actionState.isLoading
-                          ? 'Guardando...'
-                          : 'Iniciar trabajo',
+                          ? context.l10n.saving
+                          : context.l10n.startWork,
                       icon: Icons.play_arrow_rounded,
                       enabled: !actionState.isLoading,
                       onTap: () => _startActivity('Inicio de actividad'),
@@ -245,7 +248,7 @@ class _WorkOrderTimerCardState extends ConsumerState<WorkOrderTimerCard> {
                 actionState.errorMessage!.trim().isNotEmpty) ...[
               const SizedBox(height: 12),
               Text(
-                actionState.errorMessage!,
+                context.localizeError(actionState.errorMessage!),
                 style: const TextStyle(
                   color: Colors.red,
                   fontWeight: FontWeight.w700,
@@ -290,9 +293,9 @@ class _WorkOrderTimerCardState extends ConsumerState<WorkOrderTimerCard> {
       await _refreshGlobalAndLocalWorkOrders();
 
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Actividad iniciada correctamente.')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(context.l10n.activityStarted)));
     }
   }
 
@@ -345,8 +348,8 @@ class _WorkOrderTimerCardState extends ConsumerState<WorkOrderTimerCard> {
         SnackBar(
           content: Text(
             optionSelect == 'Fin de jornada'
-                ? 'Actividad terminada correctamente.'
-                : 'Actividad pausada correctamente.',
+                ? context.l10n.activityFinished
+                : context.l10n.activityPaused,
           ),
         ),
       );

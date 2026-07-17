@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/localization/localization_extension.dart';
 import '../controllers/users_controller.dart';
 import '../providers/users_providers.dart';
 
@@ -28,7 +29,7 @@ class _UsersPageState extends ConsumerState<UsersPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Users'),
+        title: Text(context.l10n.users),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
@@ -49,12 +50,15 @@ class _UsersPageState extends ConsumerState<UsersPage> {
 
     if (state.error != null && state.users.isEmpty) {
       return Center(
-        child: Text(state.error!, style: const TextStyle(color: Colors.red)),
+        child: Text(
+          context.localizeError(state.error!),
+          style: const TextStyle(color: Colors.red),
+        ),
       );
     }
 
     if (state.users.isEmpty) {
-      return const Center(child: Text('No users found'));
+      return Center(child: Text(context.l10n.noUsers));
     }
 
     return RefreshIndicator(

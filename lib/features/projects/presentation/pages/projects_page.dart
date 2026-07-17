@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/localization/localization_extension.dart';
 import '../controllers/projects_controller.dart';
 import '../providers/projects_providers.dart';
 
@@ -33,10 +34,10 @@ class _ProjectsPageState extends ConsumerState<ProjectsPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Projects'),
+        title: Text(context.l10n.projects),
         actions: [
           IconButton(
-            tooltip: 'Refrescar',
+            tooltip: context.l10n.refresh,
             onPressed: () {
               ref.read(projectsControllerProvider.notifier).refreshRemoteOnly();
             },
@@ -60,9 +61,9 @@ class _ProjectsPageState extends ConsumerState<ProjectsPage> {
                   vertical: 10,
                 ),
                 color: Colors.amber.shade100,
-                child: const Text(
-                  'Mostrando datos desde cache local.',
-                  style: TextStyle(fontSize: 13),
+                child: Text(
+                  context.l10n.showingLocalCache,
+                  style: const TextStyle(fontSize: 13),
                 ),
               ),
             if (state.error != null)
@@ -73,7 +74,10 @@ class _ProjectsPageState extends ConsumerState<ProjectsPage> {
                   vertical: 10,
                 ),
                 color: Colors.red.shade100,
-                child: Text(state.error!, style: const TextStyle(fontSize: 13)),
+                child: Text(
+                  context.localizeError(state.error!),
+                  style: const TextStyle(fontSize: 13),
+                ),
               ),
             Expanded(child: _ProjectsList(state: state)),
           ],
@@ -97,9 +101,9 @@ class _ProjectsList extends StatelessWidget {
     if (state.projects.isEmpty) {
       return ListView(
         physics: const AlwaysScrollableScrollPhysics(),
-        children: const [
-          SizedBox(height: 120),
-          Center(child: Text('No hay proyectos disponibles.')),
+        children: [
+          const SizedBox(height: 120),
+          Center(child: Text(context.l10n.noProjects)),
         ],
       );
     }
@@ -113,16 +117,20 @@ class _ProjectsList extends StatelessWidget {
 
         return ListTile(
           title: Text(
-            project.name,
+            project.name.isEmpty ? context.l10n.unnamed : project.name,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
           subtitle: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Estado: ${project.status}'),
               Text(
-                'Fecha: ${project.dateCreated}',
+                '${context.l10n.status}: '
+                '${project.status.isEmpty ? context.l10n.noData : project.status}',
+              ),
+              Text(
+                '${context.l10n.date}: '
+                '${project.dateCreated.isEmpty ? context.l10n.noData : project.dateCreated}',
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),

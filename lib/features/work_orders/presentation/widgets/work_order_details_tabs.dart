@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../app/di/providers.dart';
+import '../../../../core/localization/localization_extension.dart';
 import '../../../customers/domain/entities/customer_entity.dart';
 import '../../../projects/domain/entities/project_entity.dart';
 import '../../../users/domain/entities/user_list_entity.dart';
@@ -49,17 +50,17 @@ class GeneralTab extends ConsumerWidget {
     final customerTitle = customer?.displayName ?? '';
     final customerRows = customer == null
         ? <DisplayRowData>[]
-        : _buildCustomerSummaryRows(customer);
+        : _buildCustomerSummaryRows(context, customer);
     final customerNotes = customer == null
         ? <ServiceCategoryNote>[]
         : _extractServiceNotes(customer);
 
     return WorkOrderSection(
-      title: 'Informacion General',
+      title: context.l10n.generalInformation,
       children: [
         WorkOrderFieldRow(
           icon: Icons.business_rounded,
-          label: 'Cliente',
+          label: context.l10n.customer,
           value: customerResolved.displayText,
           showChevron: customer != null,
           onTap: customer == null
@@ -78,7 +79,7 @@ class GeneralTab extends ConsumerWidget {
         if (customer != null && customerNotes.isNotEmpty)
           WorkOrderActionButtonRow(
             icon: Icons.key_rounded,
-            label: 'Mostrar credenciales o notas',
+            label: context.l10n.showCredentialsNotes,
             onTap: () {
               CustomerBottomSheetHelpers.showCredentialsBottomSheet(
                 context: context,
@@ -89,29 +90,32 @@ class GeneralTab extends ConsumerWidget {
           ),
         WorkOrderFieldRow(
           icon: Icons.account_tree_rounded,
-          label: 'Proyecto',
+          label: context.l10n.project,
           value: projectText,
         ),
         WorkOrderFieldRow(
           icon: Icons.groups_rounded,
-          label: 'Asignado a',
+          label: context.l10n.assignedTo,
           value: assignedText,
         ),
         WorkOrderFieldRow(
           icon: Icons.layers_rounded,
-          label: 'Clase',
+          label: context.l10n.classLabel,
           value: wo.className,
         ),
         WorkOrderFieldRow(
           icon: Icons.category_rounded,
-          label: 'Tipo',
+          label: context.l10n.type,
           value: wo.typeName,
         ),
       ],
     );
   }
 
-  List<DisplayRowData> _buildCustomerSummaryRows(CustomerEntity customer) {
+  List<DisplayRowData> _buildCustomerSummaryRows(
+    BuildContext context,
+    CustomerEntity customer,
+  ) {
     final rows = <DisplayRowData>[];
     final raw = customer.rawData;
 
@@ -121,14 +125,14 @@ class GeneralTab extends ConsumerWidget {
       rows.add(DisplayRowData(label: label, value: text));
     }
 
-    addRow('Nombre cliente', raw['text_custName_id']);
-    addRow('Tipo cliente', raw['rad_clientType_id']);
-    addRow('Primer nombre', raw['text_firstName_id']);
-    addRow('Apellido', raw['text_lastName_id']);
-    addRow('Correo principal', raw['text_mainEmail_id']);
-    addRow('Celular', raw['text_mobile_id']);
-    addRow('Telefono principal', raw['text_mainPhone_id']);
-    addRow('Direccion', raw['text_street_id']);
+    addRow(context.l10n.customerName, raw['text_custName_id']);
+    addRow(context.l10n.customerType, raw['rad_clientType_id']);
+    addRow(context.l10n.firstName, raw['text_firstName_id']);
+    addRow(context.l10n.lastName, raw['text_lastName_id']);
+    addRow(context.l10n.mainEmail, raw['text_mainEmail_id']);
+    addRow(context.l10n.mobile, raw['text_mobile_id']);
+    addRow(context.l10n.mainPhone, raw['text_mainPhone_id']);
+    addRow(context.l10n.address, raw['text_street_id']);
 
     return rows;
   }
@@ -287,7 +291,7 @@ class _TimeTabState extends State<TimeTab> {
     final historyItems = _woLocal.timeHistory;
 
     return WorkOrderSection(
-      title: 'Tiempo y Programacion',
+      title: context.l10n.timeAndScheduling,
       children: [
         WorkOrderTimerCard(
           workOrderId: workOrderId,
@@ -300,12 +304,12 @@ class _TimeTabState extends State<TimeTab> {
         ),
         WorkOrderFieldRow(
           icon: Icons.play_circle_outline_rounded,
-          label: 'Inicio',
+          label: context.l10n.start,
           value: start,
         ),
         WorkOrderFieldRow(
           icon: Icons.stop_circle_outlined,
-          label: 'Fin',
+          label: context.l10n.end,
           value: end,
         ),
         WorkOrderHistorySummaryRow(history: historyItems),
@@ -322,21 +326,21 @@ class TechTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return WorkOrderSection(
-      title: 'Detalles Tecnicos',
+      title: context.l10n.technicalDetails,
       children: [
         WorkOrderFieldRow(
           icon: Icons.description_outlined,
-          label: 'Notas tecnicas',
+          label: context.l10n.technicalNotes,
           value: wo.techNotes,
         ),
         WorkOrderFieldRow(
           icon: Icons.checklist_rounded,
-          label: 'Tareas',
+          label: context.l10n.tasks,
           value: wo.tasks,
         ),
         WorkOrderFieldRow(
           icon: Icons.rule_folder_rounded,
-          label: 'To Do',
+          label: context.l10n.toDo,
           value: wo.todo,
         ),
       ],
@@ -352,11 +356,11 @@ class LocationTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return WorkOrderSection(
-      title: 'Ubicacion',
+      title: context.l10n.location,
       children: [
         WorkOrderFieldRow(
           icon: Icons.location_on_outlined,
-          label: 'Lugar de trabajo',
+          label: context.l10n.workplace,
           value: wo.workLocation,
         ),
       ],
@@ -372,26 +376,26 @@ class PartsTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return WorkOrderSection(
-      title: 'Partes / Repuestos',
+      title: context.l10n.partsSpareParts,
       children: [
         WorkOrderFieldRow(
           icon: Icons.inventory_2_outlined,
-          label: 'Partes a entregar',
+          label: context.l10n.partsToDeliver,
           value: wo.partsToDeliver,
         ),
         WorkOrderFieldRow(
           icon: Icons.send_rounded,
-          label: 'Solicitar partes',
+          label: context.l10n.requestParts,
           value: wo.requestParts,
         ),
         WorkOrderFieldRow(
           icon: Icons.done_all_rounded,
-          label: 'Partes usadas (hecho)',
+          label: context.l10n.usedParts,
           value: wo.donePartsUsed,
         ),
         WorkOrderFieldRow(
           icon: Icons.pending_rounded,
-          label: 'Pendiente / Partes necesarias',
+          label: context.l10n.requiredParts,
           value: wo.leftToDoPartsNeeded,
         ),
       ],
@@ -407,17 +411,17 @@ class EvidenceTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return WorkOrderSection(
-      title: 'Evidencias',
+      title: context.l10n.evidence,
       children: [
         WorkOrderFieldRow(
           icon: Icons.image_outlined,
-          label: 'Imagenes adjuntas (cantidad)',
+          label: context.l10n.attachedImagesCount,
           value: wo.evidenceImages.length.toString(),
         ),
-        const WorkOrderFieldRow(
+        WorkOrderFieldRow(
           icon: Icons.add_a_photo_outlined,
-          label: 'Adjuntar imagenes',
-          value: 'Pendiente: uploader / camara (se implementa despues).',
+          label: context.l10n.attachImages,
+          value: context.l10n.uploaderPending,
         ),
       ],
     );

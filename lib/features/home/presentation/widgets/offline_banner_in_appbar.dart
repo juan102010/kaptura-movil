@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/localization/localization_extension.dart';
+
 class OfflineBannerInAppBar extends StatefulWidget {
   const OfflineBannerInAppBar({super.key});
 
@@ -83,9 +85,9 @@ class _OfflineBannerInAppBarState extends State<OfflineBannerInAppBar>
 
               const SizedBox(width: 8),
 
-              const Text(
-                'Sin conexión a internet',
-                style: TextStyle(
+              Text(
+                context.l10n.noInternetConnection,
+                style: const TextStyle(
                   color: Colors.white,
                   fontWeight: FontWeight.w800,
                   fontSize: 12.5,

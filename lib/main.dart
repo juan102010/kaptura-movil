@@ -11,8 +11,10 @@ Future<void> main() async {
   // ✅ Carga variables de entorno
   await dotenv.load(fileName: '.env');
 
-  // ✅ Inicializar intl para formatos de fecha en español Colombia
-  await initializeDateFormatting('es_CO', null);
+  await Future.wait([
+    initializeDateFormatting('es', null),
+    initializeDateFormatting('en', null),
+  ]);
 
   runApp(const ProviderScope(child: AppRoot()));
 }

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../app/di/providers.dart';
+import '../../../../core/localization/localization_extension.dart';
 import '../providers/home_providers.dart';
 
 class WorkOrdersListWidget extends ConsumerWidget {
@@ -31,7 +32,7 @@ class WorkOrdersListWidget extends ConsumerWidget {
           border: Border.all(color: Colors.red.withValues(alpha: 0.18)),
         ),
         child: Text(
-          state.workOrdersError!,
+          context.localizeError(state.workOrdersError!),
           style: const TextStyle(color: Colors.red),
         ),
       );
@@ -46,7 +47,7 @@ class WorkOrdersListWidget extends ConsumerWidget {
           borderRadius: BorderRadius.circular(12),
           border: Border.all(color: Colors.grey.withValues(alpha: 0.15)),
         ),
-        child: const Text('No tienes Work Orders programadas para hoy.'),
+        child: Text(context.l10n.noTodayWorkOrders),
       );
     }
 
@@ -60,7 +61,7 @@ class WorkOrdersListWidget extends ConsumerWidget {
         itemBuilder: (context, index) {
           final item = list[index];
           final title = item.name.trim();
-          final displayTitle = title.isEmpty ? '(Sin nombre)' : title;
+          final displayTitle = title.isEmpty ? context.l10n.unnamed : title;
           final initials = _initialsFrom(displayTitle);
 
           return Container(
@@ -128,7 +129,7 @@ class WorkOrdersListWidget extends ConsumerWidget {
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              'Toca para ver detalles',
+                              context.l10n.tapForDetails,
                               style: TextStyle(
                                 fontSize: 12.5,
                                 color: const Color(

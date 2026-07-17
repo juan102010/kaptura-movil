@@ -93,13 +93,11 @@ class AuthController extends StateNotifier<AuthState> {
     return _secureStorage.readRememberedCredentials();
   }
 
-  Future<void> loginWithBiometrics() async {
+  Future<void> loginWithBiometrics({required String reason}) async {
     state = const AuthLoading();
 
     try {
-      final ok = await _biometricService.authenticate(
-        reason: 'Confirma tu identidad para iniciar sesion',
-      );
+      final ok = await _biometricService.authenticate(reason: reason);
 
       if (!ok) {
         state = const AuthInitial();

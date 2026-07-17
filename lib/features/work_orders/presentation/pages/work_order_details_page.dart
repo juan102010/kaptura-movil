@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/localization/localization_extension.dart';
 import '../../../../app/di/providers.dart';
 import '../../../customers/presentation/providers/customers_providers.dart';
 import '../../../home/presentation/providers/home_providers.dart';
@@ -46,7 +47,7 @@ class WorkOrderDetailsPage extends ConsumerWidget {
     logger.i('[WorkOrderDetailsPage] WO encontrada: ${wo.rawData}');
 
     final title = wo.name.trim();
-    final displayTitle = title.isEmpty ? '(Sin nombre)' : title;
+    final displayTitle = title.isEmpty ? context.l10n.unnamed : title;
     final initials = WorkOrderDetailsUiUtils.initialsFrom(displayTitle);
 
     return DefaultTabController(
@@ -110,11 +111,9 @@ class _WorkOrderNotFoundView extends StatelessWidget {
         backgroundColor: WorkOrderDetailsPage.brand,
         foregroundColor: Colors.white,
         elevation: 0,
-        title: const Text('Work Order'),
+        title: Text(context.l10n.workOrders),
       ),
-      body: const Center(
-        child: Text('No se encontró la Work Order en memoria/cache.'),
-      ),
+      body: Center(child: Text(context.l10n.workOrderNotFound)),
     );
   }
 }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/localization/localization_extension.dart';
 import '../providers/customers_providers.dart';
 
 class CustomersPage extends ConsumerStatefulWidget {
@@ -32,10 +33,10 @@ class _CustomersPageState extends ConsumerState<CustomersPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Customers'),
+        title: Text(context.l10n.customers),
         actions: [
           IconButton(
-            tooltip: 'Refresh',
+            tooltip: context.l10n.refresh,
             onPressed: state.loading
                 ? null
                 : () => ref
@@ -47,11 +48,9 @@ class _CustomersPageState extends ConsumerState<CustomersPage> {
       ),
       body: Column(
         children: [
-          if (state.fromCache)
-            const _InfoBanner(
-              text: 'Mostrando cache (offline o cargando remoto)',
-            ),
-          if (state.error != null) _ErrorBanner(text: state.error!),
+          if (state.fromCache) _InfoBanner(text: context.l10n.showingCache),
+          if (state.error != null)
+            _ErrorBanner(text: context.localizeError(state.error!)),
           Expanded(
             child: RefreshIndicator(
               onRefresh: () => ref
@@ -68,7 +67,7 @@ class _CustomersPageState extends ConsumerState<CustomersPage> {
                   return ListTile(
                     title: Text(
                       customer.displayName.isEmpty
-                          ? '(Sin nombre)'
+                          ? context.l10n.unnamed
                           : customer.displayName,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,

@@ -9,6 +9,10 @@ import '../../features/auth/presentation/providers/auth_providers.dart';
 import '../../features/customers/domain/entities/customer_entity.dart';
 import '../../features/customers/presentation/pages/customer_detail_page.dart';
 import '../../features/home/presentation/pages/home_page.dart';
+import '../../features/inventory/domain/entities/inventory_item_entity.dart';
+import '../../features/inventory/presentation/pages/inventory_detail_page.dart';
+import '../../features/inventory/presentation/pages/inventory_page.dart';
+import '../../features/inventory/presentation/pages/inventory_qr_scanner_page.dart';
 import '../../features/projects/domain/entities/project_entity.dart';
 import '../../features/projects/presentation/pages/project_detail_page.dart';
 import '../../features/settings/presentation/pages/settings_page.dart';
@@ -52,6 +56,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           location.startsWith('/home') ||
           location.startsWith('/work-orders') ||
           location.startsWith('/settings') ||
+          location.startsWith('/inventory') ||
           location.startsWith('/customers') ||
           location.startsWith('/projects') ||
           location.startsWith('/users');
@@ -122,6 +127,31 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: '/home',
                 builder: (context, state) => const HomePage(),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/inventory',
+                builder: (context, state) => const InventoryPage(),
+                routes: [
+                  GoRoute(
+                    path: 'scan',
+                    builder: (context, state) => const InventoryQrScannerPage(),
+                  ),
+                  GoRoute(
+                    path: ':id',
+                    builder: (context, state) {
+                      final item = state.extra as InventoryItemEntity?;
+                      final inventoryId = state.pathParameters['id'] ?? '';
+                      return InventoryDetailPage(
+                        inventoryId: inventoryId,
+                        item: item,
+                      );
+                    },
+                  ),
+                ],
               ),
             ],
           ),

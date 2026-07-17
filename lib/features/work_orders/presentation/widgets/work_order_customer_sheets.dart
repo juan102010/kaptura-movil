@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../app/di/providers.dart';
+import '../../../../core/localization/localization_extension.dart';
 import '../../../customers/domain/entities/customer_entity.dart';
 import '../widgets/work_order_details_shared_widgets.dart';
 
@@ -64,7 +65,7 @@ class CustomerBottomSheetHelpers {
                           const SizedBox(width: 12),
                           Expanded(
                             child: Text(
-                              title.isEmpty ? 'Cliente' : title,
+                              title.isEmpty ? context.l10n.customer : title,
                               style: const TextStyle(
                                 fontSize: 17,
                                 fontWeight: FontWeight.w900,
@@ -82,10 +83,10 @@ class CustomerBottomSheetHelpers {
                         padding: const EdgeInsets.all(16),
                         children: [
                           if (rows.isEmpty)
-                            const Padding(
-                              padding: EdgeInsets.symmetric(vertical: 24),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 24),
                               child: Center(
-                                child: Text('No hay informacion del cliente.'),
+                                child: Text(context.l10n.noCustomerInformation),
                               ),
                             )
                           else
@@ -275,7 +276,7 @@ class _CredentialsNotesSheetState extends ConsumerState<CredentialsNotesSheet> {
                           children: [
                             Text(
                               widget.title.isEmpty
-                                  ? 'Notas del cliente'
+                                  ? context.l10n.clientNotes
                                   : widget.title,
                               style: const TextStyle(
                                 fontSize: 17,
@@ -288,7 +289,7 @@ class _CredentialsNotesSheetState extends ConsumerState<CredentialsNotesSheet> {
                               children: [
                                 Expanded(
                                   child: Text(
-                                    'Credenciales o notas por categoria',
+                                    context.l10n.credentialsByCategory,
                                     style: TextStyle(
                                       color: WorkOrderDetailsColors.brand
                                           .withValues(alpha: 0.65),
@@ -298,7 +299,7 @@ class _CredentialsNotesSheetState extends ConsumerState<CredentialsNotesSheet> {
                                 ),
                                 const SizedBox(width: 8),
                                 IconButton(
-                                  tooltip: 'Guardar cambios',
+                                  tooltip: context.l10n.saveChanges,
                                   onPressed: _hasPendingChanges
                                       ? _handleSave
                                       : null,
@@ -321,11 +322,7 @@ class _CredentialsNotesSheetState extends ConsumerState<CredentialsNotesSheet> {
                 const Divider(height: 1),
                 Expanded(
                   child: widget.notes.isEmpty
-                      ? const Center(
-                          child: Text(
-                            'No hay credenciales o notas registradas.',
-                          ),
-                        )
+                      ? Center(child: Text(context.l10n.noCredentialsNotes))
                       : ListView.separated(
                           controller: scrollController,
                           padding: const EdgeInsets.all(16),
@@ -387,9 +384,9 @@ class EditableServiceCategoryCard extends StatelessWidget {
           const SizedBox(height: 12),
           if (item.message.trim().isNotEmpty ||
               controller.text.trim().isNotEmpty) ...[
-            const Text(
-              'Notas / credenciales',
-              style: TextStyle(
+            Text(
+              context.l10n.notesCredentials,
+              style: const TextStyle(
                 fontWeight: FontWeight.w900,
                 color: WorkOrderDetailsColors.brand,
                 fontSize: 13,
@@ -411,8 +408,8 @@ class EditableServiceCategoryCard extends StatelessWidget {
                   color: WorkOrderDetailsColors.brand.withValues(alpha: 0.88),
                   height: 1.35,
                 ),
-                decoration: const InputDecoration(
-                  hintText: 'Escribe notas o credenciales...',
+                decoration: InputDecoration(
+                  hintText: context.l10n.notesHint,
                   border: InputBorder.none,
                 ),
               ),
@@ -421,7 +418,7 @@ class EditableServiceCategoryCard extends StatelessWidget {
           if (item.images.isNotEmpty) ...[
             const SizedBox(height: 14),
             Text(
-              'Imagenes (${item.images.length})',
+              context.l10n.imagesCount(item.images.length),
               style: const TextStyle(
                 fontWeight: FontWeight.w900,
                 color: WorkOrderDetailsColors.brand,
@@ -452,7 +449,7 @@ class EditableServiceCategoryCard extends StatelessWidget {
           ],
           if (controller.text.trim().isEmpty && item.images.isEmpty)
             Text(
-              'No hay contenido registrado en esta categoria.',
+              context.l10n.noCategoryContent,
               style: TextStyle(
                 color: WorkOrderDetailsColors.brand.withValues(alpha: 0.60),
               ),
@@ -504,16 +501,15 @@ class _SignedImagePreviewState extends ConsumerState<SignedImagePreview> {
                           child: Image.network(
                             url,
                             fit: BoxFit.contain,
-                            errorBuilder: (_, error, stackTrace) =>
-                                const Center(
-                                  child: Padding(
-                                    padding: EdgeInsets.all(24),
-                                    child: Text(
-                                      'No se pudo cargar la imagen',
-                                      style: TextStyle(color: Colors.white),
-                                    ),
-                                  ),
+                            errorBuilder: (_, error, stackTrace) => Center(
+                              child: Padding(
+                                padding: const EdgeInsets.all(24),
+                                child: Text(
+                                  context.l10n.imageLoadError,
+                                  style: const TextStyle(color: Colors.white),
                                 ),
+                              ),
+                            ),
                           ),
                         ),
                       ),

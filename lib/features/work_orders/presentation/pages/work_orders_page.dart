@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:flutter_kaptura/core/localization/localization_extension.dart';
 import '../../../../app/di/providers.dart';
 import '../../../../core/network/internet_status.dart';
 
@@ -76,9 +77,9 @@ class _WorkOrdersPageState extends ConsumerState<WorkOrdersPage> {
       ),
       firstDate: DateTime(2020),
       lastDate: DateTime(2100),
-      helpText: 'Selecciona una fecha',
-      cancelText: 'Cancelar',
-      confirmText: 'Aceptar',
+      helpText: context.l10n.selectDate,
+      cancelText: context.l10n.cancel,
+      confirmText: context.l10n.accept,
     );
 
     if (picked != null) {
@@ -109,9 +110,9 @@ class _WorkOrdersPageState extends ConsumerState<WorkOrdersPage> {
         backgroundColor: _brand,
         foregroundColor: Colors.white,
         elevation: 0,
-        title: const Text(
-          'Work Orders',
-          style: TextStyle(fontWeight: FontWeight.w900),
+        title: Text(
+          context.l10n.workOrders,
+          style: const TextStyle(fontWeight: FontWeight.w900),
         ),
         bottom: isOffline
             ? const PreferredSize(
@@ -206,9 +207,9 @@ class _WorkOrdersPageState extends ConsumerState<WorkOrdersPage> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text(
-                              'Asignadas a ti',
-                              style: TextStyle(
+                            Text(
+                              context.l10n.assignedToYou,
+                              style: const TextStyle(
                                 color: Colors.white,
                                 fontWeight: FontWeight.w900,
                                 fontSize: 16.5,
@@ -216,7 +217,7 @@ class _WorkOrdersPageState extends ConsumerState<WorkOrdersPage> {
                             ),
                             const SizedBox(height: 6),
                             Text(
-                              'Revisa y abre los detalles de cada WO.',
+                              context.l10n.reviewWorkOrders,
                               style: TextStyle(
                                 color: Colors.white.withValues(alpha: 0.80),
                                 fontSize: 12.5,
@@ -250,12 +251,13 @@ class _WorkOrdersPageState extends ConsumerState<WorkOrdersPage> {
                     )
                   else if (state.workOrdersError != null &&
                       state.workOrdersError!.isNotEmpty)
-                    WorkOrdersErrorCard(message: state.workOrdersError!)
+                    WorkOrdersErrorCard(
+                      message: context.localizeError(state.workOrdersError!),
+                    )
                   else if (list.isEmpty)
-                    const WorkOrdersEmptyCard(
-                      title: 'Sin Work Orders',
-                      subtitle:
-                          'No hay Work Orders para la fecha seleccionada.',
+                    WorkOrdersEmptyCard(
+                      title: context.l10n.noWorkOrders,
+                      subtitle: context.l10n.noWorkOrdersForDate,
                     )
                   else
                     ListView.separated(
@@ -270,7 +272,7 @@ class _WorkOrdersPageState extends ConsumerState<WorkOrdersPage> {
 
                         final title = item.name.trim();
                         final displayTitle = title.isEmpty
-                            ? '(Sin nombre)'
+                            ? context.l10n.unnamed
                             : title;
 
                         final initials = _initialsFrom(displayTitle);
@@ -347,7 +349,7 @@ class _WorkOrdersPageState extends ConsumerState<WorkOrdersPage> {
                                           ),
                                           const SizedBox(height: 4),
                                           Text(
-                                            'Toca para ver detalles',
+                                            context.l10n.tapForDetails,
                                             style: TextStyle(
                                               fontSize: 12.5,
                                               color: _brand.withValues(

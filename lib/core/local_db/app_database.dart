@@ -5,17 +5,24 @@ import 'tables/work_orders_table.dart';
 import 'tables/customers_table.dart';
 import 'tables/projects_table.dart';
 import 'tables/users_table.dart';
+import 'tables/inventories_table.dart';
 
 part 'app_database.g.dart';
 
 @DriftDatabase(
-  tables: [WorkOrdersTable, CustomersTable, ProjectsTable, UsersTable],
+  tables: [
+    WorkOrdersTable,
+    CustomersTable,
+    ProjectsTable,
+    UsersTable,
+    InventoriesTable,
+  ],
 )
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 5;
+  int get schemaVersion => 6;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -43,6 +50,11 @@ class AppDatabase extends _$AppDatabase {
       // v4 -> v5: crear tabla users
       if (from < 5) {
         await m.createTable(usersTable);
+      }
+
+      // v5 -> v6: crear tabla inventories
+      if (from < 6) {
+        await m.createTable(inventoriesTable);
       }
     },
   );

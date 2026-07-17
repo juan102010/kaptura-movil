@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../app/localization/locale_controller.dart';
+import '../../../../core/constants/locale_constants.dart';
+import '../../../../core/localization/localization_extension.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 
 class SettingsPage extends ConsumerStatefulWidget {
@@ -43,19 +46,19 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                 ),
               ),
               const SizedBox(width: 10),
-              const Expanded(
+              Expanded(
                 child: Text(
-                  'Confirmación',
-                  style: TextStyle(fontWeight: FontWeight.w900),
+                  context.l10n.confirmation,
+                  style: const TextStyle(fontWeight: FontWeight.w900),
                 ),
               ),
             ],
           ),
-          content: const Text('¿Estás seguro de que deseas cerrar sesión?'),
+          content: Text(context.l10n.confirmLogout),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(ctx).pop(false),
-              child: const Text('Cancelar'),
+              child: Text(context.l10n.cancel),
             ),
             FilledButton(
               style: FilledButton.styleFrom(
@@ -66,7 +69,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                 ),
               ),
               onPressed: () => Navigator.of(ctx).pop(true),
-              child: const Text('Cerrar sesión'),
+              child: Text(context.l10n.logout),
             ),
           ],
         );
@@ -136,9 +139,9 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
         elevation: 0,
         backgroundColor: _brand,
         foregroundColor: Colors.white,
-        title: const Text(
-          'Settings',
-          style: TextStyle(fontWeight: FontWeight.w900),
+        title: Text(
+          context.l10n.settings,
+          style: const TextStyle(fontWeight: FontWeight.w900),
         ),
       ),
       body: ListView(
@@ -186,7 +189,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
-                        'Configuración',
+                        context.l10n.settings,
                         style: const TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.w900,
@@ -230,10 +233,10 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                             ),
                           ),
                           const SizedBox(width: 10),
-                          const Expanded(
+                          Expanded(
                             child: Text(
-                              'Sesión',
-                              style: TextStyle(
+                              context.l10n.session,
+                              style: const TextStyle(
                                 fontWeight: FontWeight.w900,
                                 fontSize: 16,
                                 color: _brand,
@@ -244,7 +247,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                       ),
                       const SizedBox(height: 6),
                       Text(
-                        'Administra tu sesión y accesos.',
+                        context.l10n.sessionDescription,
                         style: TextStyle(
                           color: _brand.withValues(alpha: 0.60),
                           fontSize: 12.5,
@@ -256,9 +259,9 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                         height: 52,
                         child: FilledButton.icon(
                           icon: const Icon(Icons.logout_rounded, size: 18),
-                          label: const Text(
-                            'Cerrar sesión',
-                            style: TextStyle(fontWeight: FontWeight.w900),
+                          label: Text(
+                            context.l10n.logout,
+                            style: const TextStyle(fontWeight: FontWeight.w900),
                           ),
                           style: FilledButton.styleFrom(
                             backgroundColor: _brand,
@@ -273,12 +276,84 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                       ),
                       const SizedBox(height: 10),
                       Text(
-                        'Esto borrará tu sesión local y te llevará al login.',
+                        context.l10n.logoutDescription,
                         style: TextStyle(
                           color: _brand.withValues(alpha: 0.55),
                           fontSize: 12.2,
                           height: 1.25,
                         ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 14),
+                _SectionCard(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Row(
+                        children: [
+                          Container(
+                            width: 38,
+                            height: 38,
+                            decoration: BoxDecoration(
+                              color: _softBlue,
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                            child: const Icon(
+                              Icons.language_rounded,
+                              color: _brand,
+                              size: 18,
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              context.l10n.language,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w900,
+                                fontSize: 16,
+                                color: _brand,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        context.l10n.languageDescription,
+                        style: TextStyle(
+                          color: _brand.withValues(alpha: 0.60),
+                          fontSize: 12.5,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      SegmentedButton<String>(
+                        segments: [
+                          ButtonSegment(
+                            value: 'en',
+                            icon: const Icon(Icons.translate_rounded),
+                            label: Text(context.l10n.english),
+                          ),
+                          ButtonSegment(
+                            value: 'es',
+                            icon: const Icon(Icons.translate_rounded),
+                            label: Text(context.l10n.spanish),
+                          ),
+                        ],
+                        selected: {
+                          ref.watch(localeControllerProvider).languageCode,
+                        },
+                        onSelectionChanged: (selection) {
+                          final languageCode = selection.first;
+                          ref
+                              .read(localeControllerProvider.notifier)
+                              .setLocale(
+                                languageCode == 'es'
+                                    ? LocaleConstants.spanish
+                                    : LocaleConstants.english,
+                              );
+                        },
                       ),
                     ],
                   ),
@@ -359,7 +434,7 @@ class _LoggingOutOverlay extends StatelessWidget {
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
-                      'Cerrando sesión…',
+                      context.l10n.loggingOut,
                       style: TextStyle(
                         fontSize: 15.5,
                         fontWeight: FontWeight.w900,

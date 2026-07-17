@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/localization/localization_extension.dart';
+
 class HomePageHeader extends StatelessWidget {
   const HomePageHeader({
     super.key,
@@ -55,7 +57,7 @@ class HomePageHeader extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Hola, $userName',
+                      context.l10n.helloUser(userName),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
@@ -67,8 +69,8 @@ class HomePageHeader extends StatelessWidget {
                     const SizedBox(height: 6),
                     Text(
                       isOffline
-                          ? 'Modo offline activo. Algunos datos pueden venir de caché.'
-                          : 'Gestiona tu jornada y revisa tus Work Orders.',
+                          ? context.l10n.offlineModeActive
+                          : context.l10n.manageDay,
                       style: TextStyle(
                         color: Colors.white.withValues(alpha: 0.82),
                         fontSize: 12.5,

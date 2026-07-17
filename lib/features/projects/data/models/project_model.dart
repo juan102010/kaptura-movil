@@ -13,11 +13,9 @@ class ProjectModel extends ProjectEntity {
   factory ProjectModel.fromMap(Map<String, dynamic> map) {
     return ProjectModel(
       id: (map['_id'] ?? '').toString().trim(),
-      name: (map['text_nameProject_id'] ?? 'Sin nombre').toString().trim(),
-      status: (map['text_stateProject_id'] ?? 'Sin estado').toString().trim(),
-      dateCreated: (map['date_dateCreateProject_id'] ?? 'Sin fecha')
-          .toString()
-          .trim(),
+      name: (map['text_nameProject_id'] ?? '').toString().trim(),
+      status: (map['text_stateProject_id'] ?? '').toString().trim(),
+      dateCreated: (map['date_dateCreateProject_id'] ?? '').toString().trim(),
       customerCode: (map['text_customerCode_id'] ?? '').toString().trim(),
       rawData: Map<String, dynamic>.from(map),
     );

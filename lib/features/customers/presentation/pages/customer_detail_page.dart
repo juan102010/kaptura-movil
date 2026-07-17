@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/localization/localization_extension.dart';
 import '../../../../core/ui/widgets/app_key_value_row.dart';
 import '../../domain/entities/customer_entity.dart';
 
@@ -17,71 +18,77 @@ class CustomerDetailPage extends StatelessWidget {
   Widget build(BuildContext context) {
     if (customer == null) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Customer Detail')),
-        body: Center(
-          child: Text('No se encontro el cliente para id: $customerId'),
-        ),
+        appBar: AppBar(title: Text(context.l10n.customerDetail)),
+        body: Center(child: Text(context.l10n.customerNotFound(customerId))),
       );
     }
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Customer Detail')),
+      appBar: AppBar(title: Text(context.l10n.customerDetail)),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          AppKeyValueRow(label: 'ID', value: customer!.id, labelWidth: 160),
           AppKeyValueRow(
-            label: 'Tipo',
+            label: context.l10n.idLabel,
+            value: customer!.id,
+            labelWidth: 160,
+          ),
+          AppKeyValueRow(
+            label: context.l10n.type,
             value: customer!.clientType,
             labelWidth: 160,
           ),
           const Divider(),
           AppKeyValueRow(
-            label: 'Email',
+            label: context.l10n.email,
             value: customer!.mainEmail,
             labelWidth: 160,
           ),
           AppKeyValueRow(
-            label: 'Phone',
+            label: context.l10n.phone,
             value: customer!.mainPhone,
             labelWidth: 160,
           ),
           AppKeyValueRow(
-            label: 'Mobile',
+            label: context.l10n.mobile,
             value: customer!.mobile,
             labelWidth: 160,
           ),
           const Divider(),
-          AppKeyValueRow(label: 'City', value: customer!.city, labelWidth: 160),
           AppKeyValueRow(
-            label: 'State',
+            label: context.l10n.city,
+            value: customer!.city,
+            labelWidth: 160,
+          ),
+          AppKeyValueRow(
+            label: context.l10n.state,
             value: customer!.stateName,
             labelWidth: 160,
           ),
           AppKeyValueRow(
-            label: 'Country',
+            label: context.l10n.country,
             value: customer!.country,
             labelWidth: 160,
           ),
           AppKeyValueRow(
-            label: 'Street',
+            label: context.l10n.street,
             value: customer!.street,
             labelWidth: 160,
           ),
           const Divider(),
           AppKeyValueRow(
-            label: 'Camera Message',
+            label: context.l10n.cameraMessage,
             value: customer!.cameraMessage,
             labelWidth: 160,
           ),
           AppKeyValueRow(
-            label: 'First camera image URL',
+            label: context.l10n.firstCameraImageUrl,
             value: customer!.firstCameraImageUrl,
             labelWidth: 160,
           ),
           const SizedBox(height: 12),
           Text(
-            'Este detalle sigue funcionando offline porque sale del cache local.',
+            context.l10n.offlineDetailNotice,
             style: Theme.of(context).textTheme.bodySmall,
           ),
         ],

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/localization/localization_extension.dart';
 import '../../../customers/domain/entities/customer_entity.dart';
 
 class WorkOrderDetailsUiUtils {
@@ -168,13 +169,13 @@ class WorkOrderTabBar extends StatelessWidget {
           alpha: 0.55,
         ),
         labelStyle: const TextStyle(fontWeight: FontWeight.w900),
-        tabs: const [
-          Tab(text: 'General'),
-          Tab(text: 'Tiempo'),
-          Tab(text: 'Técnico'),
-          Tab(text: 'Ubicación'),
-          Tab(text: 'Partes'),
-          Tab(text: 'Evidencias'),
+        tabs: [
+          Tab(text: context.l10n.general),
+          Tab(text: context.l10n.time),
+          Tab(text: context.l10n.technician),
+          Tab(text: context.l10n.location),
+          Tab(text: context.l10n.parts),
+          Tab(text: context.l10n.evidence),
         ],
       ),
     );

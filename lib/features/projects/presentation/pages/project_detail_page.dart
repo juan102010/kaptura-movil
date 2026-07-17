@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/localization/localization_extension.dart';
 import '../../../../core/ui/widgets/app_key_value_row.dart';
 import '../../../../core/ui/widgets/app_section_card.dart';
 import '../../domain/entities/project_entity.dart';
@@ -14,54 +15,55 @@ class ProjectDetailPage extends StatelessWidget {
   Widget build(BuildContext context) {
     if (project == null) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Project Detail')),
-        body: Center(
-          child: Text('No se encontro el proyecto para id: $projectId'),
-        ),
+        appBar: AppBar(title: Text(context.l10n.projectDetail)),
+        body: Center(child: Text(context.l10n.projectNotFound(projectId))),
       );
     }
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Project Detail')),
+      appBar: AppBar(title: Text(context.l10n.projectDetail)),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
           AppSectionCard(
-            title: 'Informacion principal',
+            title: context.l10n.mainInformation,
             children: [
-              AppKeyValueRow(label: 'ID', value: project!.id),
+              AppKeyValueRow(label: context.l10n.idLabel, value: project!.id),
               AppKeyValueRow(
-                label: 'Nombre del proyecto',
+                label: context.l10n.projectName,
                 value: project!.name,
               ),
-              AppKeyValueRow(label: 'Estado', value: project!.status),
               AppKeyValueRow(
-                label: 'Fecha de creacion',
+                label: context.l10n.status,
+                value: project!.status,
+              ),
+              AppKeyValueRow(
+                label: context.l10n.createdAt,
                 value: project!.dateCreated,
               ),
               AppKeyValueRow(
-                label: 'Codigo de cliente',
+                label: context.l10n.customerCode,
                 value: project!.customerCode,
               ),
             ],
           ),
           const SizedBox(height: 12),
           AppSectionCard(
-            title: 'Campos anidados',
+            title: context.l10n.nestedFields,
             children: [
               AppKeyValueRow(
-                label: 'First Work Order Id',
+                label: context.l10n.firstWorkOrderId,
                 value: project!.firstWorkOrderId,
               ),
               AppKeyValueRow(
-                label: 'First Work Order Name',
+                label: context.l10n.firstWorkOrderName,
                 value: project!.firstWorkOrderName,
               ),
             ],
           ),
           const SizedBox(height: 12),
           AppSectionCard(
-            title: 'Raw preview',
+            title: context.l10n.rawPreview,
             children: [
               SelectableText(
                 project!.rawData.toString(),

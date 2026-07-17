@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 class WorkOrdersDateFilterBar extends StatelessWidget {
   const WorkOrdersDateFilterBar({
@@ -20,7 +21,9 @@ class WorkOrdersDateFilterBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final localSelectedDate = _normalizeLocalDate(selectedDate);
-    final text = _formatDate(localSelectedDate);
+    final text = DateFormat.yMMMMEEEEd(
+      Localizations.localeOf(context).languageCode,
+    ).format(localSelectedDate);
 
     return Container(
       width: double.infinity,
@@ -90,38 +93,6 @@ class WorkOrdersDateFilterBar extends StatelessWidget {
   DateTime _normalizeLocalDate(DateTime date) {
     final local = date.toLocal();
     return DateTime(local.year, local.month, local.day);
-  }
-
-  String _formatDate(DateTime date) {
-    const weekdays = [
-      'Lunes',
-      'Martes',
-      'Miércoles',
-      'Jueves',
-      'Viernes',
-      'Sábado',
-      'Domingo',
-    ];
-
-    const months = [
-      'enero',
-      'febrero',
-      'marzo',
-      'abril',
-      'mayo',
-      'junio',
-      'julio',
-      'agosto',
-      'septiembre',
-      'octubre',
-      'noviembre',
-      'diciembre',
-    ];
-
-    final weekday = weekdays[date.weekday - 1];
-    final month = months[date.month - 1];
-
-    return '$weekday, ${date.day} de $month de ${date.year}';
   }
 }
 

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/localization/localization_extension.dart';
+
 class OfflineBanner extends StatefulWidget {
   const OfflineBanner({super.key, required this.visible});
 
@@ -82,7 +84,7 @@ class _OfflineBannerState extends State<OfflineBanner>
                     const SizedBox(width: 10),
                     Expanded(
                       child: Text(
-                        'Sin internet. Trabajando en modo offline.',
+                        context.l10n.noInternetOffline,
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           fontWeight: FontWeight.w600,
                         ),

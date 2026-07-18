@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-class WorkOrdersDateFilterBar extends StatelessWidget {
-  const WorkOrdersDateFilterBar({
+class AppDateFilterBar extends StatelessWidget {
+  const AppDateFilterBar({
     super.key,
     required this.selectedDate,
     required this.onPrevious,
@@ -20,10 +20,14 @@ class WorkOrdersDateFilterBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final localSelectedDate = _normalizeLocalDate(selectedDate);
+    final date = DateTime(
+      selectedDate.year,
+      selectedDate.month,
+      selectedDate.day,
+    );
     final text = DateFormat.yMMMMEEEEd(
       Localizations.localeOf(context).languageCode,
-    ).format(localSelectedDate);
+    ).format(date);
 
     return Container(
       width: double.infinity,
@@ -89,11 +93,6 @@ class WorkOrdersDateFilterBar extends StatelessWidget {
       ),
     );
   }
-
-  DateTime _normalizeLocalDate(DateTime date) {
-    final local = date.toLocal();
-    return DateTime(local.year, local.month, local.day);
-  }
 }
 
 class _NavButton extends StatelessWidget {
@@ -102,13 +101,10 @@ class _NavButton extends StatelessWidget {
   final IconData icon;
   final VoidCallback onTap;
 
-  static const _brand = Color(0xFF0B2A4A);
-  static const _bg = Color(0xFFF6F7FB);
-
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: _bg,
+      color: const Color(0xFFF6F7FB),
       borderRadius: BorderRadius.circular(14),
       child: InkWell(
         borderRadius: BorderRadius.circular(14),
@@ -116,7 +112,7 @@ class _NavButton extends StatelessWidget {
         child: SizedBox(
           width: 44,
           height: 44,
-          child: Icon(icon, color: _brand),
+          child: Icon(icon, color: const Color(0xFF0B2A4A)),
         ),
       ),
     );

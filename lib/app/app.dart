@@ -10,6 +10,9 @@ import 'localization/locale_controller.dart';
 import 'router/app_router.dart';
 import 'theme/app_theme.dart';
 import 'package:toastification/toastification.dart';
+import '../features/auth/presentation/controllers/auth_state.dart';
+import '../features/auth/presentation/providers/auth_providers.dart';
+import '../features/permissions/presentation/providers/permission_settings_providers.dart';
 
 class AppRoot extends ConsumerStatefulWidget {
   const AppRoot({super.key});
@@ -26,6 +29,7 @@ class _AppRootState extends ConsumerState<AppRoot> {
     super.initState();
 
     final eventBus = ref.read(eventBusProvider);
+    ref.read(pendingUpdateSyncServiceProvider);
     _sub = eventBus.stream.listen((event) {
       if (event == AppEvent.sessionExpired) {
         ref.read(appRouterProvider).go('/login');
@@ -41,6 +45,10 @@ class _AppRootState extends ConsumerState<AppRoot> {
 
   @override
   Widget build(BuildContext context) {
+    final authState = ref.watch(authControllerProvider);
+    if (authState is AuthAuthenticated) {
+      ref.watch(permissionSettingsControllerProvider);
+    }
     final router = ref.watch(appRouterProvider);
     final locale = ref.watch(localeControllerProvider);
 

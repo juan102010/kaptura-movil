@@ -43,6 +43,22 @@ class CustomerEntity {
 
   bool matchesId(String otherId) => id == otherId.trim();
 
+  CustomerEntity withPatchedRawData(Map<String, dynamic> patch) {
+    return CustomerEntity(
+      id: id,
+      displayName: displayName,
+      clientType: clientType,
+      mainEmail: mainEmail,
+      mainPhone: mainPhone,
+      mobile: mobile,
+      city: city,
+      stateName: stateName,
+      country: country,
+      street: street,
+      rawData: Map<String, dynamic>.from(rawData)..addAll(patch),
+    );
+  }
+
   String _readNestedString(List<dynamic> path) {
     dynamic current = rawData;
 

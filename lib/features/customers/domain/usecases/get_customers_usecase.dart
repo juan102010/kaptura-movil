@@ -19,4 +19,8 @@ class GetCustomersUsecase {
   Future<void> clearCache() async {
     return _repo.clearCustomersCache();
   }
+
+  Future<void> saveCached(List<CustomerEntity> customers) {
+    return _repo.saveCustomersCache(customers);
+  }
 }

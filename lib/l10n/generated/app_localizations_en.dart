@@ -751,4 +751,70 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get additionalClockInReasonHint =>
       'Enter the reason for the additional Clock In';
+
+  @override
+  String get accessDenied => 'No access';
+
+  @override
+  String get modulePermissionRequired =>
+      'You do not have the View and Read permissions required to access this section.';
+
+  @override
+  String get timeReports => 'Time reports';
+
+  @override
+  String get dailyTimeline => 'Daily timeline';
+
+  @override
+  String get noTimeReportsForDate => 'There are no time reports for this date.';
+
+  @override
+  String get editTimeReport => 'Edit time report';
+
+  @override
+  String get reportedTime => 'Reported time';
+
+  @override
+  String get entryType => 'Clock in';
+
+  @override
+  String get exitType => 'Clock out';
+
+  @override
+  String get timeReportUpdated => 'Time report updated successfully.';
+
+  @override
+  String get updatePermissionRequired =>
+      'Update permission is required to edit reports.';
+
+  @override
+  String get yes => 'Yes';
+
+  @override
+  String get no => 'No';
+
+  @override
+  String get registerCustomerLocation => 'Register customer location';
+
+  @override
+  String get customerLocationConfirmation =>
+      'You are about to register the customer\'s location. Are you currently at the workplace?';
+
+  @override
+  String get showInMaps => 'Show in Maps';
+
+  @override
+  String get couldNotOpenMaps => 'Maps could not be opened.';
+
+  @override
+  String uploadingImagePercent(int percent) {
+    return 'Uploading image $percent%';
+  }
+
+  @override
+  String get takePhoto => 'Take photo';
+
+  @override
+  String get noEvidenceImages =>
+      'This work order does not have any images yet.';
 }

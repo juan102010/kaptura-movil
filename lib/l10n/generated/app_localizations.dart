@@ -1495,6 +1495,126 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Enter the reason for the additional Clock In'**
   String get additionalClockInReasonHint;
+
+  /// No description provided for @accessDenied.
+  ///
+  /// In en, this message translates to:
+  /// **'No access'**
+  String get accessDenied;
+
+  /// No description provided for @modulePermissionRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'You do not have the View and Read permissions required to access this section.'**
+  String get modulePermissionRequired;
+
+  /// No description provided for @timeReports.
+  ///
+  /// In en, this message translates to:
+  /// **'Time reports'**
+  String get timeReports;
+
+  /// No description provided for @dailyTimeline.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily timeline'**
+  String get dailyTimeline;
+
+  /// No description provided for @noTimeReportsForDate.
+  ///
+  /// In en, this message translates to:
+  /// **'There are no time reports for this date.'**
+  String get noTimeReportsForDate;
+
+  /// No description provided for @editTimeReport.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit time report'**
+  String get editTimeReport;
+
+  /// No description provided for @reportedTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Reported time'**
+  String get reportedTime;
+
+  /// No description provided for @entryType.
+  ///
+  /// In en, this message translates to:
+  /// **'Clock in'**
+  String get entryType;
+
+  /// No description provided for @exitType.
+  ///
+  /// In en, this message translates to:
+  /// **'Clock out'**
+  String get exitType;
+
+  /// No description provided for @timeReportUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Time report updated successfully.'**
+  String get timeReportUpdated;
+
+  /// No description provided for @updatePermissionRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Update permission is required to edit reports.'**
+  String get updatePermissionRequired;
+
+  /// No description provided for @yes.
+  ///
+  /// In en, this message translates to:
+  /// **'Yes'**
+  String get yes;
+
+  /// No description provided for @no.
+  ///
+  /// In en, this message translates to:
+  /// **'No'**
+  String get no;
+
+  /// No description provided for @registerCustomerLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Register customer location'**
+  String get registerCustomerLocation;
+
+  /// No description provided for @customerLocationConfirmation.
+  ///
+  /// In en, this message translates to:
+  /// **'You are about to register the customer\'s location. Are you currently at the workplace?'**
+  String get customerLocationConfirmation;
+
+  /// No description provided for @showInMaps.
+  ///
+  /// In en, this message translates to:
+  /// **'Show in Maps'**
+  String get showInMaps;
+
+  /// No description provided for @couldNotOpenMaps.
+  ///
+  /// In en, this message translates to:
+  /// **'Maps could not be opened.'**
+  String get couldNotOpenMaps;
+
+  /// No description provided for @uploadingImagePercent.
+  ///
+  /// In en, this message translates to:
+  /// **'Uploading image {percent}%'**
+  String uploadingImagePercent(int percent);
+
+  /// No description provided for @takePhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Take photo'**
+  String get takePhoto;
+
+  /// No description provided for @noEvidenceImages.
+  ///
+  /// In en, this message translates to:
+  /// **'This work order does not have any images yet.'**
+  String get noEvidenceImages;
 }
 
 class _AppLocalizationsDelegate

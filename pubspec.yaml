@@ -34,6 +34,8 @@ dependencies:
   internet_connection_checker: ^1.0.0+1
   local_auth: ^2.2.0
   mobile_scanner: ^5.2.3
+  image_picker: ^1.2.3
+  url_launcher: ^6.3.2
 
 dev_dependencies:
   flutter_test:

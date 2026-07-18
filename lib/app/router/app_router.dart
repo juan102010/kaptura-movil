@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/localization/localization_extension.dart';
+
 import '../../features/auth/presentation/controllers/auth_state.dart';
 import '../../features/auth/presentation/pages/login_page.dart';
 import '../../features/auth/presentation/pages/welcome_page.dart';
@@ -14,8 +16,11 @@ import '../../features/inventory/presentation/pages/inventory_detail_page.dart';
 import '../../features/inventory/presentation/pages/inventory_page.dart';
 import '../../features/inventory/presentation/pages/inventory_qr_scanner_page.dart';
 import '../../features/projects/domain/entities/project_entity.dart';
+import '../../features/permissions/presentation/controllers/permission_settings_controller.dart';
+import '../../features/permissions/presentation/widgets/permission_gate.dart';
 import '../../features/projects/presentation/pages/project_detail_page.dart';
 import '../../features/settings/presentation/pages/settings_page.dart';
+import '../../features/time_reports/presentation/pages/time_reports_page.dart';
 import '../../features/users/domain/entities/user_list_entity.dart';
 import '../../features/users/presentation/pages/user_detail_page.dart';
 import '../../features/work_orders/presentation/pages/work_order_details_page.dart';
@@ -57,6 +62,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           location.startsWith('/work-orders') ||
           location.startsWith('/settings') ||
           location.startsWith('/inventory') ||
+          location.startsWith('/time-reports') ||
           location.startsWith('/customers') ||
           location.startsWith('/projects') ||
           location.startsWith('/users');
@@ -109,13 +115,21 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             routes: [
               GoRoute(
                 path: '/work-orders',
-                builder: (context, state) => const WorkOrdersPage(),
+                builder: (context, state) => PermissionGate(
+                  module: ProtectedModule.workOrders,
+                  title: context.l10n.workOrders,
+                  child: const WorkOrdersPage(),
+                ),
                 routes: [
                   GoRoute(
                     path: ':id',
                     builder: (context, state) {
                       final id = state.pathParameters['id'] ?? '';
-                      return WorkOrderDetailsPage(workOrderId: id);
+                      return PermissionGate(
+                        module: ProtectedModule.workOrders,
+                        title: context.l10n.workOrders,
+                        child: WorkOrderDetailsPage(workOrderId: id),
+                      );
                     },
                   ),
                 ],
@@ -134,24 +148,48 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             routes: [
               GoRoute(
                 path: '/inventory',
-                builder: (context, state) => const InventoryPage(),
+                builder: (context, state) => PermissionGate(
+                  module: ProtectedModule.inventory,
+                  title: context.l10n.inventory,
+                  child: const InventoryPage(),
+                ),
                 routes: [
                   GoRoute(
                     path: 'scan',
-                    builder: (context, state) => const InventoryQrScannerPage(),
+                    builder: (context, state) => PermissionGate(
+                      module: ProtectedModule.inventory,
+                      title: context.l10n.inventory,
+                      child: const InventoryQrScannerPage(),
+                    ),
                   ),
                   GoRoute(
                     path: ':id',
                     builder: (context, state) {
                       final item = state.extra as InventoryItemEntity?;
                       final inventoryId = state.pathParameters['id'] ?? '';
-                      return InventoryDetailPage(
-                        inventoryId: inventoryId,
-                        item: item,
+                      return PermissionGate(
+                        module: ProtectedModule.inventory,
+                        title: context.l10n.inventory,
+                        child: InventoryDetailPage(
+                          inventoryId: inventoryId,
+                          item: item,
+                        ),
                       );
                     },
                   ),
                 ],
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/time-reports',
+                builder: (context, state) => PermissionGate(
+                  module: ProtectedModule.timeReports,
+                  title: context.l10n.timeReports,
+                  child: const TimeReportsPage(),
+                ),
               ),
             ],
           ),

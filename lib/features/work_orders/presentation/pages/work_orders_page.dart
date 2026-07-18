@@ -5,10 +5,10 @@ import 'package:go_router/go_router.dart';
 import 'package:flutter_kaptura/core/localization/localization_extension.dart';
 import '../../../../app/di/providers.dart';
 import '../../../../core/network/internet_status.dart';
+import '../../../../core/ui/widgets/app_date_filter_bar.dart';
 
 import '../../../home/presentation/providers/home_providers.dart';
 import '../../../home/presentation/widgets/offline_banner_in_appbar.dart';
-import '../widgets/work_orders_date_filter_bar.dart';
 import '../widgets/work_orders_page_sections.dart';
 
 import '../../../users/presentation/providers/users_providers.dart';
@@ -237,7 +237,7 @@ class _WorkOrdersPageState extends ConsumerState<WorkOrdersPage> {
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Column(
                 children: [
-                  WorkOrdersDateFilterBar(
+                  AppDateFilterBar(
                     selectedDate: selectedDate,
                     onPrevious: notifier.goToPreviousWorkOrdersDay,
                     onNext: notifier.goToNextWorkOrdersDay,

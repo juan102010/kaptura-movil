@@ -6,6 +6,9 @@ import 'tables/customers_table.dart';
 import 'tables/projects_table.dart';
 import 'tables/users_table.dart';
 import 'tables/inventories_table.dart';
+import 'tables/permission_settings_table.dart';
+import 'tables/time_reports_table.dart';
+import 'tables/pending_updates_table.dart';
 
 part 'app_database.g.dart';
 
@@ -16,13 +19,16 @@ part 'app_database.g.dart';
     ProjectsTable,
     UsersTable,
     InventoriesTable,
+    PermissionSettingsTable,
+    TimeReportsTable,
+    PendingUpdatesTable,
   ],
 )
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 6;
+  int get schemaVersion => 9;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -55,6 +61,21 @@ class AppDatabase extends _$AppDatabase {
       // v5 -> v6: crear tabla inventories
       if (from < 6) {
         await m.createTable(inventoriesTable);
+      }
+
+      // v6 -> v7: crear cache de permisos
+      if (from < 7) {
+        await m.createTable(permissionSettingsTable);
+      }
+
+      // v7 -> v8: crear cache de reportes de tiempo
+      if (from < 8) {
+        await m.createTable(timeReportsTable);
+      }
+
+      // v8 -> v9: cola de actualizaciones para sincronizacion offline
+      if (from < 9) {
+        await m.createTable(pendingUpdatesTable);
       }
     },
   );

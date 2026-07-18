@@ -72,7 +72,24 @@ class WorkOrderEntity {
     );
   }
 
+  WorkOrderEntity withPatchedRawData(Map<String, dynamic> patch) {
+    final updatedRaw = Map<String, dynamic>.from(rawData)..addAll(patch);
+    return WorkOrderEntity(
+      id: id,
+      name: _string(updatedRaw['text_nameWorkOrder_id']),
+      assignedIds: List<String>.from(assignedIds),
+      startAt: _tryParseDate(updatedRaw['date_start_id']),
+      endAt: _tryParseDate(updatedRaw['date_end_id']),
+      rawData: updatedRaw,
+    );
+  }
+
   bool matchesId(String otherId) => id == otherId.trim();
 
   static String _string(dynamic value) => (value ?? '').toString().trim();
+
+  static DateTime? _tryParseDate(dynamic value) {
+    final text = _string(value);
+    return text.isEmpty ? null : DateTime.tryParse(text);
+  }
 }

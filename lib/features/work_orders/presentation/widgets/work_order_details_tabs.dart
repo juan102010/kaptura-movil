@@ -1,16 +1,23 @@
+import 'dart:async';
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../app/di/providers.dart';
 import '../../../../core/localization/localization_extension.dart';
 import '../../../customers/domain/entities/customer_entity.dart';
+import '../../../customers/presentation/providers/customers_providers.dart';
 import '../../../projects/domain/entities/project_entity.dart';
 import '../../../users/domain/entities/user_list_entity.dart';
+import '../../../home/presentation/providers/home_providers.dart';
 import '../../domain/entities/work_order_entity.dart';
 import 'work_order_customer_sheets.dart';
 import 'work_order_details_shared_widgets.dart';
-import 'work_order_history_widgets.dart';
 import 'work_order_timer_widgets.dart';
+import 'work_order_autosave_widgets.dart';
 
 class GeneralTab extends ConsumerWidget {
   const GeneralTab({
@@ -76,18 +83,6 @@ class GeneralTab extends ConsumerWidget {
                   );
                 },
         ),
-        if (customer != null && customerNotes.isNotEmpty)
-          WorkOrderActionButtonRow(
-            icon: Icons.key_rounded,
-            label: context.l10n.showCredentialsNotes,
-            onTap: () {
-              CustomerBottomSheetHelpers.showCredentialsBottomSheet(
-                context: context,
-                title: customerTitle,
-                notes: customerNotes,
-              );
-            },
-          ),
         WorkOrderFieldRow(
           icon: Icons.account_tree_rounded,
           label: context.l10n.project,
@@ -257,16 +252,332 @@ class GeneralTab extends ConsumerWidget {
   }
 }
 
-class TimeTab extends StatefulWidget {
+class CredentialsNotesTab extends ConsumerStatefulWidget {
+  const CredentialsNotesTab({
+    super.key,
+    required this.customerId,
+    required this.customers,
+  });
+
+  final String customerId;
+  final List<CustomerEntity> customers;
+
+  @override
+  ConsumerState<CredentialsNotesTab> createState() =>
+      _CredentialsNotesTabState();
+}
+
+class _CredentialsNotesTabState extends ConsumerState<CredentialsNotesTab> {
+  CustomerEntity? _customer;
+  Map<String, dynamic> _categories = <String, dynamic>{};
+  String? _selectedCategory;
+  bool _uploading = false;
+  double _uploadProgress = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadFromCustomer();
+  }
+
+  @override
+  void didUpdateWidget(covariant CredentialsNotesTab oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!_uploading) _loadFromCustomer(keepSelection: true);
+  }
+
+  void _loadFromCustomer({bool keepSelection = false}) {
+    _customer = null;
+    for (final customer in widget.customers) {
+      if (customer.matchesId(widget.customerId)) {
+        _customer = customer;
+        break;
+      }
+    }
+    final raw = _customer?.rawData['obj_categoriesOfServices_id'];
+    _categories = raw is Map
+        ? Map<String, dynamic>.from(_deepCopy(raw) as Map)
+        : <String, dynamic>{};
+    final names = _categories.keys.toList(growable: false);
+    if (!keepSelection || !names.contains(_selectedCategory)) {
+      _selectedCategory = names.isEmpty ? null : names.first;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final names = _categories.keys.toList(growable: false);
+    final records = _recordsFor(_selectedCategory);
+    return WorkOrderSection(
+      title: context.l10n.credentialsByCategory,
+      showHeader: false,
+      children: [
+        if (names.isEmpty)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 28),
+            child: Center(child: Text(context.l10n.noCredentialsNotes)),
+          )
+        else ...[
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: names
+                  .map(
+                    (name) => Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: ChoiceChip(
+                        label: Text(name),
+                        selected: name == _selectedCategory,
+                        onSelected: (_) =>
+                            setState(() => _selectedCategory = name),
+                      ),
+                    ),
+                  )
+                  .toList(growable: false),
+            ),
+          ),
+          const SizedBox(height: 14),
+          if (records.isEmpty)
+            Center(child: Text(context.l10n.noCategoryContent))
+          else
+            _buildCategoryCard(category: _selectedCategory!, records: records),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildCategoryCard({
+    required String category,
+    required List<Map<String, dynamic>> records,
+  }) {
+    final images = _mergedImages(records);
+    final message = records
+        .map((record) => (record['message'] ?? '').toString().trim())
+        .firstWhere((value) => value.isNotEmpty, orElse: () => '');
+    return Container(
+      key: ValueKey(category),
+      margin: const EdgeInsets.only(bottom: 14),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: Colors.black.withValues(alpha: 0.05)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          WorkOrderAutosaveField(
+            key: ValueKey('message-$category'),
+            icon: Icons.notes_rounded,
+            label: context.l10n.notesCredentials,
+            value: message,
+            maxLines: 3,
+            onSave: (_, newValue) => _updateCategoryMessage(category, newValue),
+          ),
+          if (images.isNotEmpty)
+            SizedBox(
+              height: 124,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                itemCount: images.length,
+                separatorBuilder: (_, _) => const SizedBox(width: 10),
+                itemBuilder: (_, imageIndex) => Stack(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8, right: 8),
+                      child: SignedImagePreview(
+                        imageData: images[imageIndex].data,
+                      ),
+                    ),
+                    Positioned(
+                      right: 0,
+                      top: 0,
+                      child: IconButton.filled(
+                        visualDensity: VisualDensity.compact,
+                        iconSize: 16,
+                        onPressed: () => _removeImage(
+                          category,
+                          images[imageIndex].recordIndex,
+                          images[imageIndex].imageIndex,
+                        ),
+                        icon: const Icon(Icons.close_rounded),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          const SizedBox(height: 10),
+          if (_uploading)
+            LinearProgressIndicator(value: _uploadProgress)
+          else
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: () => _addImage(category, ImageSource.camera),
+                    icon: const Icon(Icons.photo_camera_outlined),
+                    label: Text(context.l10n.takePhoto),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: () => _addImage(category, ImageSource.gallery),
+                    icon: const Icon(Icons.attach_file_rounded),
+                    label: Text(context.l10n.attachImages),
+                  ),
+                ),
+              ],
+            ),
+        ],
+      ),
+    );
+  }
+
+  List<Map<String, dynamic>> _recordsFor(String? category) {
+    final raw = category == null ? null : _categories[category];
+    if (raw is! List) return const <Map<String, dynamic>>[];
+    return raw
+        .whereType<Map>()
+        .map((record) => Map<String, dynamic>.from(record))
+        .toList(growable: false);
+  }
+
+  List<({int recordIndex, int imageIndex, Map<String, dynamic> data})>
+  _mergedImages(List<Map<String, dynamic>> records) {
+    final result =
+        <({int recordIndex, int imageIndex, Map<String, dynamic> data})>[];
+    final seen = <String>{};
+    for (var recordIndex = 0; recordIndex < records.length; recordIndex++) {
+      final rawImages = records[recordIndex]['images'];
+      if (rawImages is! List) continue;
+      for (var imageIndex = 0; imageIndex < rawImages.length; imageIndex++) {
+        final rawImage = rawImages[imageIndex];
+        if (rawImage is! Map) continue;
+        final image = Map<String, dynamic>.from(rawImage);
+        final identity = (image['id'] ?? image['key'] ?? image['url'] ?? '')
+            .toString();
+        final uniqueKey = identity.isEmpty
+            ? '$recordIndex-$imageIndex'
+            : identity;
+        if (!seen.add(uniqueKey)) continue;
+        result.add((
+          recordIndex: recordIndex,
+          imageIndex: imageIndex,
+          data: image,
+        ));
+      }
+    }
+    return result;
+  }
+
+  Future<void> _updateCategoryMessage(String category, String message) async {
+    final next = _copyCategories();
+    final records = next[category] as List;
+    for (final record in records.whereType<Map>()) {
+      record['message'] = message;
+    }
+    await _saveCategories(next);
+  }
+
+  Future<void> _removeImage(
+    String category,
+    int recordIndex,
+    int imageIndex,
+  ) async {
+    final next = _copyCategories();
+    final record = (next[category] as List)[recordIndex] as Map;
+    final images = record['images'] as List? ?? <dynamic>[];
+    images.removeAt(imageIndex);
+    record['images'] = images;
+    await _saveCategories(next);
+  }
+
+  Future<void> _addImage(String category, ImageSource source) async {
+    final file = await ImagePicker().pickImage(
+      source: source,
+      imageQuality: 85,
+      maxWidth: 1920,
+    );
+    if (file == null || !mounted) return;
+    setState(() {
+      _uploading = true;
+      _uploadProgress = 0;
+    });
+    try {
+      final meta = await ref
+          .read(postUploadFileServiceProvider)
+          .upload(
+            file,
+            onSendProgress: (sent, total) {
+              if (mounted && total > 0) {
+                setState(() => _uploadProgress = sent / total);
+              }
+            },
+          );
+      final next = _copyCategories();
+      final categoryRecords = next[category] as List;
+      if (categoryRecords.isEmpty) return;
+      final record = categoryRecords.first as Map;
+      final images = record['images'] is List
+          ? record['images'] as List
+          : <dynamic>[];
+      images.add(meta);
+      record['images'] = images;
+      await _saveCategories(next);
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(error.toString().replaceFirst('Exception: ', '')),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _uploading = false);
+    }
+  }
+
+  Future<void> _saveCategories(Map<String, dynamic> next) async {
+    final customer = _customer;
+    if (customer == null) return;
+    final previous = _copyCategories();
+    await ref
+        .read(updateDataByIdServiceProvider)
+        .update(
+          tableName: 'customers',
+          id: customer.id,
+          data: {
+            'obj_categoriesOfServices_id': {
+              'oldValue': previous,
+              'newValue': next,
+            },
+          },
+        );
+    await ref.read(customersControllerProvider.notifier).applyCustomerPatch(
+      customer.id,
+      {'obj_categoriesOfServices_id': next},
+    );
+    if (mounted) setState(() => _categories = next);
+  }
+
+  Map<String, dynamic> _copyCategories() =>
+      Map<String, dynamic>.from(_deepCopy(_categories) as Map);
+
+  dynamic _deepCopy(dynamic value) => jsonDecode(jsonEncode(value));
+}
+
+class TimeTab extends ConsumerStatefulWidget {
   const TimeTab({super.key, required this.wo});
 
   final WorkOrderEntity wo;
 
   @override
-  State<TimeTab> createState() => _TimeTabState();
+  ConsumerState<TimeTab> createState() => _TimeTabState();
 }
 
-class _TimeTabState extends State<TimeTab> {
+class _TimeTabState extends ConsumerState<TimeTab> {
   late WorkOrderEntity _woLocal;
 
   @override
@@ -300,6 +611,15 @@ class _TimeTabState extends State<TimeTab> {
             setState(() {
               _woLocal = _woLocal.withUpdatedTimeHistory(newHistory);
             });
+            unawaited(
+              ref
+                  .read(homeControllerProvider.notifier)
+                  .applyWorkOrderPatch(workOrderId, {
+                    'text_dateTime_id': newHistory
+                        .map((item) => item.toMap())
+                        .toList(),
+                  }),
+            );
           },
         ),
         WorkOrderFieldRow(
@@ -312,118 +632,461 @@ class _TimeTabState extends State<TimeTab> {
           label: context.l10n.end,
           value: end,
         ),
-        WorkOrderHistorySummaryRow(history: historyItems),
       ],
     );
   }
 }
 
-class TechTab extends StatelessWidget {
+class TechTab extends ConsumerWidget {
   const TechTab({super.key, required this.wo});
 
   final WorkOrderEntity wo;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return WorkOrderSection(
       title: context.l10n.technicalDetails,
       children: [
-        WorkOrderFieldRow(
+        WorkOrderAutosaveField(
           icon: Icons.description_outlined,
           label: context.l10n.technicalNotes,
           value: wo.techNotes,
+          maxLines: 3,
+          onSave: (oldValue, newValue) => autosaveWorkOrderField(
+            ref: ref,
+            workOrderId: wo.id,
+            field: 'text_workTechNotes_id',
+            oldValue: oldValue,
+            newValue: newValue,
+          ),
         ),
-        WorkOrderFieldRow(
+        WorkOrderAutosaveField(
           icon: Icons.checklist_rounded,
           label: context.l10n.tasks,
           value: wo.tasks,
+          maxLines: 3,
+          onSave: (oldValue, newValue) => autosaveWorkOrderField(
+            ref: ref,
+            workOrderId: wo.id,
+            field: 'text_tasks_id',
+            oldValue: oldValue,
+            newValue: newValue,
+          ),
         ),
-        WorkOrderFieldRow(
+        WorkOrderAutosaveField(
           icon: Icons.rule_folder_rounded,
           label: context.l10n.toDo,
           value: wo.todo,
+          maxLines: 3,
+          onSave: (oldValue, newValue) => autosaveWorkOrderField(
+            ref: ref,
+            workOrderId: wo.id,
+            field: 'text_toDo_id',
+            oldValue: oldValue,
+            newValue: newValue,
+          ),
         ),
       ],
     );
   }
 }
 
-class LocationTab extends StatelessWidget {
+class LocationTab extends ConsumerStatefulWidget {
   const LocationTab({super.key, required this.wo});
 
   final WorkOrderEntity wo;
 
   @override
+  ConsumerState<LocationTab> createState() => _LocationTabState();
+}
+
+class _LocationTabState extends ConsumerState<LocationTab> {
+  late String _location;
+  bool _saving = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _location = widget.wo.workLocation;
+  }
+
+  @override
+  void didUpdateWidget(covariant LocationTab oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!_saving && oldWidget.wo.workLocation != widget.wo.workLocation) {
+      _location = widget.wo.workLocation;
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final coordinates = WorkCoordinates.tryParse(_location);
     return WorkOrderSection(
       title: context.l10n.location,
       children: [
         WorkOrderFieldRow(
           icon: Icons.location_on_outlined,
           label: context.l10n.workplace,
-          value: wo.workLocation,
+          value: _location,
         ),
+        if (coordinates == null)
+          FilledButton.icon(
+            onPressed: _saving ? null : _confirmAndRegisterLocation,
+            icon: _saving
+                ? const SizedBox.square(
+                    dimension: 18,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Icon(Icons.my_location_rounded),
+            label: Text(context.l10n.registerCustomerLocation),
+          )
+        else
+          FilledButton.tonalIcon(
+            onPressed: () => _openMaps(coordinates),
+            icon: const Icon(Icons.map_outlined),
+            label: Text(context.l10n.showInMaps),
+          ),
       ],
     );
   }
+
+  WorkOrderEntity get wo => widget.wo;
+
+  Future<void> _confirmAndRegisterLocation() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(context.l10n.registerCustomerLocation),
+        content: Text(context.l10n.customerLocationConfirmation),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(context.l10n.no),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: Text(context.l10n.yes),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+
+    setState(() => _saving = true);
+    try {
+      final coords = await ref
+          .read(locationServiceProvider)
+          .getRequiredCoords();
+      final value = '${coords.lat},${coords.lng}';
+      await autosaveWorkOrderField(
+        ref: ref,
+        workOrderId: wo.id,
+        field: 'text_workLocation_id',
+        oldValue: _location,
+        newValue: value,
+      );
+      if (mounted) setState(() => _location = value);
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(error.toString().replaceFirst('Exception: ', '')),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
+  }
+
+  Future<void> _openMaps(WorkCoordinates coordinates) async {
+    final uri = Uri.parse(
+      'https://www.google.com/maps/search/?api=1&query='
+      '${coordinates.latitude},${coordinates.longitude}',
+    );
+    if (!await launchUrl(uri, mode: LaunchMode.externalApplication) &&
+        mounted) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(context.l10n.couldNotOpenMaps)));
+    }
+  }
 }
 
-class PartsTab extends StatelessWidget {
+class PartsTab extends ConsumerWidget {
   const PartsTab({super.key, required this.wo});
 
   final WorkOrderEntity wo;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return WorkOrderSection(
       title: context.l10n.partsSpareParts,
       children: [
-        WorkOrderFieldRow(
+        WorkOrderAutosaveField(
           icon: Icons.inventory_2_outlined,
           label: context.l10n.partsToDeliver,
           value: wo.partsToDeliver,
+          maxLines: 3,
+          onSave: (oldValue, newValue) => autosaveWorkOrderField(
+            ref: ref,
+            workOrderId: wo.id,
+            field: 'text_partsToDeliver_id',
+            oldValue: oldValue,
+            newValue: newValue,
+          ),
         ),
-        WorkOrderFieldRow(
+        WorkOrderAutosaveField(
           icon: Icons.send_rounded,
           label: context.l10n.requestParts,
           value: wo.requestParts,
+          maxLines: 3,
+          onSave: (oldValue, newValue) => autosaveWorkOrderField(
+            ref: ref,
+            workOrderId: wo.id,
+            field: 'text_requestParts_id',
+            oldValue: oldValue,
+            newValue: newValue,
+          ),
         ),
-        WorkOrderFieldRow(
+        WorkOrderAutosaveField(
           icon: Icons.done_all_rounded,
           label: context.l10n.usedParts,
           value: wo.donePartsUsed,
+          maxLines: 3,
+          onSave: (oldValue, newValue) => autosaveWorkOrderField(
+            ref: ref,
+            workOrderId: wo.id,
+            field: 'text_donePartsUsed_id',
+            oldValue: oldValue,
+            newValue: newValue,
+          ),
         ),
-        WorkOrderFieldRow(
+        WorkOrderAutosaveField(
           icon: Icons.pending_rounded,
           label: context.l10n.requiredParts,
           value: wo.leftToDoPartsNeeded,
+          maxLines: 3,
+          onSave: (oldValue, newValue) => autosaveWorkOrderField(
+            ref: ref,
+            workOrderId: wo.id,
+            field: 'text_leftToDoPartsNeeded_id',
+            oldValue: oldValue,
+            newValue: newValue,
+          ),
         ),
       ],
     );
   }
 }
 
-class EvidenceTab extends StatelessWidget {
+class EvidenceTab extends ConsumerStatefulWidget {
   const EvidenceTab({super.key, required this.wo});
 
   final WorkOrderEntity wo;
+
+  @override
+  ConsumerState<EvidenceTab> createState() => _EvidenceTabState();
+}
+
+class _EvidenceTabState extends ConsumerState<EvidenceTab> {
+  late List<Map<String, dynamic>> _images;
+  bool _uploading = false;
+  double _progress = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _images = widget.wo.evidenceImages;
+  }
+
+  @override
+  void didUpdateWidget(covariant EvidenceTab oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!_uploading &&
+        oldWidget.wo.evidenceImages != widget.wo.evidenceImages) {
+      _images = widget.wo.evidenceImages;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return WorkOrderSection(
       title: context.l10n.evidence,
       children: [
-        WorkOrderFieldRow(
-          icon: Icons.image_outlined,
-          label: context.l10n.attachedImagesCount,
-          value: wo.evidenceImages.length.toString(),
-        ),
-        WorkOrderFieldRow(
-          icon: Icons.add_a_photo_outlined,
-          label: context.l10n.attachImages,
-          value: context.l10n.uploaderPending,
-        ),
+        if (_images.isNotEmpty)
+          SizedBox(
+            height: 116,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              itemCount: _images.length,
+              separatorBuilder: (_, _) => const SizedBox(width: 10),
+              itemBuilder: (context, index) =>
+                  _EvidenceThumbnail(imageInfo: _images[index]),
+            ),
+          )
+        else
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 18),
+            child: Center(child: Text(context.l10n.noEvidenceImages)),
+          ),
+        const SizedBox(height: 8),
+        if (_uploading)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 10),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const SizedBox.square(
+                  dimension: 18,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
+                const SizedBox(width: 10),
+                Text(
+                  context.l10n.uploadingImagePercent((_progress * 100).round()),
+                ),
+              ],
+            ),
+          )
+        else
+          Row(
+            children: [
+              Expanded(
+                child: FilledButton.icon(
+                  onPressed: () => _pickAndUpload(ImageSource.camera),
+                  icon: const Icon(Icons.photo_camera_outlined),
+                  label: Text(context.l10n.takePhoto),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: FilledButton.tonalIcon(
+                  onPressed: () => _pickAndUpload(ImageSource.gallery),
+                  icon: const Icon(Icons.attach_file_rounded),
+                  label: Text(context.l10n.attachImages),
+                ),
+              ),
+            ],
+          ),
       ],
     );
+  }
+
+  Future<void> _pickAndUpload(ImageSource source) async {
+    final file = await ImagePicker().pickImage(
+      source: source,
+      imageQuality: 85,
+      maxWidth: 1920,
+    );
+    if (file == null || !mounted) return;
+
+    setState(() {
+      _uploading = true;
+      _progress = 0;
+    });
+    try {
+      final meta = await ref
+          .read(postUploadFileServiceProvider)
+          .upload(
+            file,
+            onSendProgress: (sent, total) {
+              if (mounted && total > 0) {
+                setState(() => _progress = sent / total);
+              }
+            },
+          );
+      final updated = <Map<String, dynamic>>[
+        ..._images,
+        {'name': file.name, 'meta': meta},
+      ];
+      await autosaveWorkOrderField(
+        ref: ref,
+        workOrderId: widget.wo.id,
+        field: 'files_infoImagesUpload_id',
+        oldValue: _images,
+        newValue: updated,
+      );
+      if (mounted) setState(() => _images = updated);
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(error.toString().replaceFirst('Exception: ', '')),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _uploading = false);
+    }
+  }
+}
+
+class _EvidenceThumbnail extends ConsumerWidget {
+  const _EvidenceThumbnail({required this.imageInfo});
+
+  final Map<String, dynamic> imageInfo;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final meta = imageInfo['meta'];
+    final params = meta is Map
+        ? Map<String, dynamic>.from(meta)
+        : <String, dynamic>{};
+    return FutureBuilder<String?>(
+      future: ref.read(signedDownloadUrlServiceProvider).getSignedDownloadUrl({
+        ...params,
+        'disposition': 'inline',
+        'filename': imageInfo['name']?.toString(),
+      }),
+      builder: (context, snapshot) {
+        final fallback = params['url']?.toString();
+        final url = snapshot.data?.trim().isNotEmpty == true
+            ? snapshot.data!
+            : fallback;
+        return InkWell(
+          onTap: url == null || url.isEmpty
+              ? null
+              : () => showDialog<void>(
+                  context: context,
+                  builder: (_) => Dialog(
+                    child: InteractiveViewer(child: Image.network(url)),
+                  ),
+                ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(14),
+            child: Container(
+              width: 116,
+              color: Colors.black12,
+              child: url == null || url.isEmpty
+                  ? const Icon(Icons.broken_image_outlined)
+                  : Image.network(
+                      url,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, _, _) =>
+                          const Icon(Icons.broken_image_outlined),
+                    ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class WorkCoordinates {
+  const WorkCoordinates(this.latitude, this.longitude);
+
+  final double latitude;
+  final double longitude;
+
+  static WorkCoordinates? tryParse(String value) {
+    final parts = value.split(',').map((part) => part.trim()).toList();
+    if (parts.length != 2) return null;
+    final latitude = double.tryParse(parts[0]);
+    final longitude = double.tryParse(parts[1]);
+    if (latitude == null || longitude == null) return null;
+    if (latitude < -90 || latitude > 90) return null;
+    if (longitude < -180 || longitude > 180) return null;
+    return WorkCoordinates(latitude, longitude);
   }
 }

@@ -295,4 +295,23 @@ class HomeController extends StateNotifier<HomeState> {
       errorMessage: null,
     );
   }
+
+  Future<void> applyWorkOrderPatch(
+    String workOrderId,
+    Map<String, dynamic> patch,
+  ) async {
+    WorkOrderEntity patchItem(WorkOrderEntity item) =>
+        item.matchesId(workOrderId) ? item.withPatchedRawData(patch) : item;
+
+    final updated = state.workOrders.map(patchItem).toList(growable: false);
+    state = state.copyWith(
+      workOrders: updated,
+      todayWorkOrders: _filterToday(updated),
+      filteredWorkOrders: _filterBySelectedDate(
+        updated,
+        state.selectedWorkOrdersDate,
+      ),
+    );
+    await _getMyWorkOrdersUsecase.saveCached(updated);
+  }
 }

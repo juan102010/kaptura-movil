@@ -171,9 +171,10 @@ class WorkOrderTabBar extends StatelessWidget {
         labelStyle: const TextStyle(fontWeight: FontWeight.w900),
         tabs: [
           Tab(text: context.l10n.general),
+          Tab(text: context.l10n.location),
+          Tab(text: context.l10n.notesCredentials),
           Tab(text: context.l10n.time),
           Tab(text: context.l10n.technician),
-          Tab(text: context.l10n.location),
           Tab(text: context.l10n.parts),
           Tab(text: context.l10n.evidence),
         ],
@@ -220,44 +221,48 @@ class WorkOrderSection extends StatelessWidget {
     super.key,
     required this.title,
     required this.children,
+    this.showHeader = true,
   });
 
   final String title;
   final List<Widget> children;
+  final bool showHeader;
 
   @override
   Widget build(BuildContext context) {
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 6, 16, 18),
       children: [
-        Row(
-          children: [
-            Container(
-              width: 38,
-              height: 38,
-              decoration: BoxDecoration(
-                color: WorkOrderDetailsColors.softBlue,
-                borderRadius: BorderRadius.circular(14),
-              ),
-              child: const Icon(
-                Icons.info_outline_rounded,
-                color: WorkOrderDetailsColors.brand,
-              ),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                title,
-                style: const TextStyle(
-                  fontWeight: FontWeight.w900,
-                  fontSize: 16,
+        if (showHeader) ...[
+          Row(
+            children: [
+              Container(
+                width: 38,
+                height: 38,
+                decoration: BoxDecoration(
+                  color: WorkOrderDetailsColors.softBlue,
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: const Icon(
+                  Icons.info_outline_rounded,
                   color: WorkOrderDetailsColors.brand,
                 ),
               ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 12),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  title,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w900,
+                    fontSize: 16,
+                    color: WorkOrderDetailsColors.brand,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+        ],
         ...children,
       ],
     );

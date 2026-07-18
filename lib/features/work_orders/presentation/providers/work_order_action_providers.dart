@@ -10,8 +10,7 @@ import '../controllers/work_order_time_action_state.dart';
 final workOrderRemoteDataSourceProvider = Provider<WorkOrderRemoteDataSource>((
   ref,
 ) {
-  final apiDio = ref.watch(dioClientsProvider);
-  return WorkOrderRemoteDataSource(apiDio.api);
+  return WorkOrderRemoteDataSource(ref.watch(updateDataByIdServiceProvider));
 });
 
 final workOrderRepositoryProvider = Provider<WorkOrderRepositoryImpl>((ref) {

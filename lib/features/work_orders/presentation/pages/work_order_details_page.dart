@@ -51,7 +51,7 @@ class WorkOrderDetailsPage extends ConsumerWidget {
     final initials = WorkOrderDetailsUiUtils.initialsFrom(displayTitle);
 
     return DefaultTabController(
-      length: 6,
+      length: 7,
       child: Scaffold(
         backgroundColor: bg,
         appBar: AppBar(
@@ -85,9 +85,13 @@ class WorkOrderDetailsPage extends ConsumerWidget {
                     customers: customersState.customers,
                     projects: projectsState.projects,
                   ),
+                  LocationTab(wo: wo),
+                  CredentialsNotesTab(
+                    customerId: wo.customerId,
+                    customers: customersState.customers,
+                  ),
                   TimeTab(wo: wo),
                   TechTab(wo: wo),
-                  LocationTab(wo: wo),
                   PartsTab(wo: wo),
                   EvidenceTab(wo: wo),
                 ],

@@ -23,6 +23,11 @@ import '../../features/auth/domain/usecases/clear_session_usecase.dart';
 import '../../core/services/location_service.dart';
 import '../../core/network/internet_monitor.dart';
 import '../../core/network/internet_status.dart';
+import '../../core/local_db/app_database_provider.dart';
+import '../../core/services/pending_update_store.dart';
+import '../../core/services/pending_update_sync_service.dart';
+import '../../core/services/update_data_by_id_service.dart';
+import '../../core/services/post_upload_file_service.dart';
 import 'package:local_auth/local_auth.dart';
 import '../../core/services/biometric_service.dart';
 import '../../core/services/get_signed_download_url.dart';
@@ -123,6 +128,37 @@ final internetMonitorProvider = Provider<InternetMonitor>((ref) {
 final internetStatusProvider = StreamProvider<InternetStatus>((ref) {
   final monitor = ref.watch(internetMonitorProvider);
   return monitor.stream;
+});
+
+final pendingUpdateStoreProvider = Provider<PendingUpdateStore>((ref) {
+  return PendingUpdateStore(ref.watch(appDatabaseProvider));
+});
+
+final updateDataByIdServiceProvider = Provider<UpdateDataByIdService>((ref) {
+  return UpdateDataByIdService(
+    apiDio: ref.watch(dioClientsProvider).api,
+    pendingStore: ref.watch(pendingUpdateStoreProvider),
+    internetMonitor: ref.watch(internetMonitorProvider),
+  );
+});
+
+final postUploadFileServiceProvider = Provider<PostUploadFileService>((ref) {
+  return PostUploadFileService(
+    apiDio: ref.watch(dioClientsProvider).api,
+    secureStorage: ref.watch(secureStorageServiceProvider),
+  );
+});
+
+final pendingUpdateSyncServiceProvider = Provider<PendingUpdateSyncService>((
+  ref,
+) {
+  final service = PendingUpdateSyncService(
+    internetMonitor: ref.watch(internetMonitorProvider),
+    pendingStore: ref.watch(pendingUpdateStoreProvider),
+    updateService: ref.watch(updateDataByIdServiceProvider),
+  )..start();
+  ref.onDispose(service.dispose);
+  return service;
 });
 final signedDownloadUrlServiceProvider = Provider<SignedDownloadUrlService>((
   ref,

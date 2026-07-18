@@ -1508,6 +1508,1064 @@ class InventoriesTableCompanion extends UpdateCompanion<InventoriesTableData> {
   }
 }
 
+class $PermissionSettingsTableTable extends PermissionSettingsTable
+    with TableInfo<$PermissionSettingsTableTable, PermissionSettingsTableData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $PermissionSettingsTableTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _rawJsonMeta = const VerificationMeta(
+    'rawJson',
+  );
+  @override
+  late final GeneratedColumn<String> rawJson = GeneratedColumn<String>(
+    'raw_json',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _cachedAtMeta = const VerificationMeta(
+    'cachedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> cachedAt = GeneratedColumn<DateTime>(
+    'cached_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [id, rawJson, cachedAt];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'permission_settings_table';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<PermissionSettingsTableData> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('raw_json')) {
+      context.handle(
+        _rawJsonMeta,
+        rawJson.isAcceptableOrUnknown(data['raw_json']!, _rawJsonMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_rawJsonMeta);
+    }
+    if (data.containsKey('cached_at')) {
+      context.handle(
+        _cachedAtMeta,
+        cachedAt.isAcceptableOrUnknown(data['cached_at']!, _cachedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_cachedAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  PermissionSettingsTableData map(
+    Map<String, dynamic> data, {
+    String? tablePrefix,
+  }) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return PermissionSettingsTableData(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      rawJson: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}raw_json'],
+      )!,
+      cachedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}cached_at'],
+      )!,
+    );
+  }
+
+  @override
+  $PermissionSettingsTableTable createAlias(String alias) {
+    return $PermissionSettingsTableTable(attachedDatabase, alias);
+  }
+}
+
+class PermissionSettingsTableData extends DataClass
+    implements Insertable<PermissionSettingsTableData> {
+  final String id;
+  final String rawJson;
+  final DateTime cachedAt;
+  const PermissionSettingsTableData({
+    required this.id,
+    required this.rawJson,
+    required this.cachedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['raw_json'] = Variable<String>(rawJson);
+    map['cached_at'] = Variable<DateTime>(cachedAt);
+    return map;
+  }
+
+  PermissionSettingsTableCompanion toCompanion(bool nullToAbsent) {
+    return PermissionSettingsTableCompanion(
+      id: Value(id),
+      rawJson: Value(rawJson),
+      cachedAt: Value(cachedAt),
+    );
+  }
+
+  factory PermissionSettingsTableData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return PermissionSettingsTableData(
+      id: serializer.fromJson<String>(json['id']),
+      rawJson: serializer.fromJson<String>(json['rawJson']),
+      cachedAt: serializer.fromJson<DateTime>(json['cachedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'rawJson': serializer.toJson<String>(rawJson),
+      'cachedAt': serializer.toJson<DateTime>(cachedAt),
+    };
+  }
+
+  PermissionSettingsTableData copyWith({
+    String? id,
+    String? rawJson,
+    DateTime? cachedAt,
+  }) => PermissionSettingsTableData(
+    id: id ?? this.id,
+    rawJson: rawJson ?? this.rawJson,
+    cachedAt: cachedAt ?? this.cachedAt,
+  );
+  PermissionSettingsTableData copyWithCompanion(
+    PermissionSettingsTableCompanion data,
+  ) {
+    return PermissionSettingsTableData(
+      id: data.id.present ? data.id.value : this.id,
+      rawJson: data.rawJson.present ? data.rawJson.value : this.rawJson,
+      cachedAt: data.cachedAt.present ? data.cachedAt.value : this.cachedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('PermissionSettingsTableData(')
+          ..write('id: $id, ')
+          ..write('rawJson: $rawJson, ')
+          ..write('cachedAt: $cachedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, rawJson, cachedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is PermissionSettingsTableData &&
+          other.id == this.id &&
+          other.rawJson == this.rawJson &&
+          other.cachedAt == this.cachedAt);
+}
+
+class PermissionSettingsTableCompanion
+    extends UpdateCompanion<PermissionSettingsTableData> {
+  final Value<String> id;
+  final Value<String> rawJson;
+  final Value<DateTime> cachedAt;
+  final Value<int> rowid;
+  const PermissionSettingsTableCompanion({
+    this.id = const Value.absent(),
+    this.rawJson = const Value.absent(),
+    this.cachedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  PermissionSettingsTableCompanion.insert({
+    required String id,
+    required String rawJson,
+    required DateTime cachedAt,
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       rawJson = Value(rawJson),
+       cachedAt = Value(cachedAt);
+  static Insertable<PermissionSettingsTableData> custom({
+    Expression<String>? id,
+    Expression<String>? rawJson,
+    Expression<DateTime>? cachedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (rawJson != null) 'raw_json': rawJson,
+      if (cachedAt != null) 'cached_at': cachedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  PermissionSettingsTableCompanion copyWith({
+    Value<String>? id,
+    Value<String>? rawJson,
+    Value<DateTime>? cachedAt,
+    Value<int>? rowid,
+  }) {
+    return PermissionSettingsTableCompanion(
+      id: id ?? this.id,
+      rawJson: rawJson ?? this.rawJson,
+      cachedAt: cachedAt ?? this.cachedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (rawJson.present) {
+      map['raw_json'] = Variable<String>(rawJson.value);
+    }
+    if (cachedAt.present) {
+      map['cached_at'] = Variable<DateTime>(cachedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('PermissionSettingsTableCompanion(')
+          ..write('id: $id, ')
+          ..write('rawJson: $rawJson, ')
+          ..write('cachedAt: $cachedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $TimeReportsTableTable extends TimeReportsTable
+    with TableInfo<$TimeReportsTableTable, TimeReportsTableData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $TimeReportsTableTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _rawJsonMeta = const VerificationMeta(
+    'rawJson',
+  );
+  @override
+  late final GeneratedColumn<String> rawJson = GeneratedColumn<String>(
+    'raw_json',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _cachedAtMeta = const VerificationMeta(
+    'cachedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> cachedAt = GeneratedColumn<DateTime>(
+    'cached_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [id, rawJson, cachedAt];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'time_reports_table';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<TimeReportsTableData> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('raw_json')) {
+      context.handle(
+        _rawJsonMeta,
+        rawJson.isAcceptableOrUnknown(data['raw_json']!, _rawJsonMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_rawJsonMeta);
+    }
+    if (data.containsKey('cached_at')) {
+      context.handle(
+        _cachedAtMeta,
+        cachedAt.isAcceptableOrUnknown(data['cached_at']!, _cachedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_cachedAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  TimeReportsTableData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return TimeReportsTableData(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      rawJson: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}raw_json'],
+      )!,
+      cachedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}cached_at'],
+      )!,
+    );
+  }
+
+  @override
+  $TimeReportsTableTable createAlias(String alias) {
+    return $TimeReportsTableTable(attachedDatabase, alias);
+  }
+}
+
+class TimeReportsTableData extends DataClass
+    implements Insertable<TimeReportsTableData> {
+  final String id;
+  final String rawJson;
+  final DateTime cachedAt;
+  const TimeReportsTableData({
+    required this.id,
+    required this.rawJson,
+    required this.cachedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['raw_json'] = Variable<String>(rawJson);
+    map['cached_at'] = Variable<DateTime>(cachedAt);
+    return map;
+  }
+
+  TimeReportsTableCompanion toCompanion(bool nullToAbsent) {
+    return TimeReportsTableCompanion(
+      id: Value(id),
+      rawJson: Value(rawJson),
+      cachedAt: Value(cachedAt),
+    );
+  }
+
+  factory TimeReportsTableData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return TimeReportsTableData(
+      id: serializer.fromJson<String>(json['id']),
+      rawJson: serializer.fromJson<String>(json['rawJson']),
+      cachedAt: serializer.fromJson<DateTime>(json['cachedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'rawJson': serializer.toJson<String>(rawJson),
+      'cachedAt': serializer.toJson<DateTime>(cachedAt),
+    };
+  }
+
+  TimeReportsTableData copyWith({
+    String? id,
+    String? rawJson,
+    DateTime? cachedAt,
+  }) => TimeReportsTableData(
+    id: id ?? this.id,
+    rawJson: rawJson ?? this.rawJson,
+    cachedAt: cachedAt ?? this.cachedAt,
+  );
+  TimeReportsTableData copyWithCompanion(TimeReportsTableCompanion data) {
+    return TimeReportsTableData(
+      id: data.id.present ? data.id.value : this.id,
+      rawJson: data.rawJson.present ? data.rawJson.value : this.rawJson,
+      cachedAt: data.cachedAt.present ? data.cachedAt.value : this.cachedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('TimeReportsTableData(')
+          ..write('id: $id, ')
+          ..write('rawJson: $rawJson, ')
+          ..write('cachedAt: $cachedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, rawJson, cachedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is TimeReportsTableData &&
+          other.id == this.id &&
+          other.rawJson == this.rawJson &&
+          other.cachedAt == this.cachedAt);
+}
+
+class TimeReportsTableCompanion extends UpdateCompanion<TimeReportsTableData> {
+  final Value<String> id;
+  final Value<String> rawJson;
+  final Value<DateTime> cachedAt;
+  final Value<int> rowid;
+  const TimeReportsTableCompanion({
+    this.id = const Value.absent(),
+    this.rawJson = const Value.absent(),
+    this.cachedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  TimeReportsTableCompanion.insert({
+    required String id,
+    required String rawJson,
+    required DateTime cachedAt,
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       rawJson = Value(rawJson),
+       cachedAt = Value(cachedAt);
+  static Insertable<TimeReportsTableData> custom({
+    Expression<String>? id,
+    Expression<String>? rawJson,
+    Expression<DateTime>? cachedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (rawJson != null) 'raw_json': rawJson,
+      if (cachedAt != null) 'cached_at': cachedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  TimeReportsTableCompanion copyWith({
+    Value<String>? id,
+    Value<String>? rawJson,
+    Value<DateTime>? cachedAt,
+    Value<int>? rowid,
+  }) {
+    return TimeReportsTableCompanion(
+      id: id ?? this.id,
+      rawJson: rawJson ?? this.rawJson,
+      cachedAt: cachedAt ?? this.cachedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (rawJson.present) {
+      map['raw_json'] = Variable<String>(rawJson.value);
+    }
+    if (cachedAt.present) {
+      map['cached_at'] = Variable<DateTime>(cachedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('TimeReportsTableCompanion(')
+          ..write('id: $id, ')
+          ..write('rawJson: $rawJson, ')
+          ..write('cachedAt: $cachedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $PendingUpdatesTableTable extends PendingUpdatesTable
+    with TableInfo<$PendingUpdatesTableTable, PendingUpdatesTableData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $PendingUpdatesTableTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _localIdMeta = const VerificationMeta(
+    'localId',
+  );
+  @override
+  late final GeneratedColumn<int> localId = GeneratedColumn<int>(
+    'local_id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _targetTableMeta = const VerificationMeta(
+    'targetTable',
+  );
+  @override
+  late final GeneratedColumn<String> targetTable = GeneratedColumn<String>(
+    'target_table',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _recordIdMeta = const VerificationMeta(
+    'recordId',
+  );
+  @override
+  late final GeneratedColumn<String> recordId = GeneratedColumn<String>(
+    'record_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _dataJsonMeta = const VerificationMeta(
+    'dataJson',
+  );
+  @override
+  late final GeneratedColumn<String> dataJson = GeneratedColumn<String>(
+    'data_json',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _schemeOverrideMeta = const VerificationMeta(
+    'schemeOverride',
+  );
+  @override
+  late final GeneratedColumn<String> schemeOverride = GeneratedColumn<String>(
+    'scheme_override',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _attemptsMeta = const VerificationMeta(
+    'attempts',
+  );
+  @override
+  late final GeneratedColumn<int> attempts = GeneratedColumn<int>(
+    'attempts',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _lastErrorMeta = const VerificationMeta(
+    'lastError',
+  );
+  @override
+  late final GeneratedColumn<String> lastError = GeneratedColumn<String>(
+    'last_error',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    localId,
+    targetTable,
+    recordId,
+    dataJson,
+    schemeOverride,
+    attempts,
+    lastError,
+    createdAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'pending_updates_table';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<PendingUpdatesTableData> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('local_id')) {
+      context.handle(
+        _localIdMeta,
+        localId.isAcceptableOrUnknown(data['local_id']!, _localIdMeta),
+      );
+    }
+    if (data.containsKey('target_table')) {
+      context.handle(
+        _targetTableMeta,
+        targetTable.isAcceptableOrUnknown(
+          data['target_table']!,
+          _targetTableMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_targetTableMeta);
+    }
+    if (data.containsKey('record_id')) {
+      context.handle(
+        _recordIdMeta,
+        recordId.isAcceptableOrUnknown(data['record_id']!, _recordIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_recordIdMeta);
+    }
+    if (data.containsKey('data_json')) {
+      context.handle(
+        _dataJsonMeta,
+        dataJson.isAcceptableOrUnknown(data['data_json']!, _dataJsonMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_dataJsonMeta);
+    }
+    if (data.containsKey('scheme_override')) {
+      context.handle(
+        _schemeOverrideMeta,
+        schemeOverride.isAcceptableOrUnknown(
+          data['scheme_override']!,
+          _schemeOverrideMeta,
+        ),
+      );
+    }
+    if (data.containsKey('attempts')) {
+      context.handle(
+        _attemptsMeta,
+        attempts.isAcceptableOrUnknown(data['attempts']!, _attemptsMeta),
+      );
+    }
+    if (data.containsKey('last_error')) {
+      context.handle(
+        _lastErrorMeta,
+        lastError.isAcceptableOrUnknown(data['last_error']!, _lastErrorMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {localId};
+  @override
+  PendingUpdatesTableData map(
+    Map<String, dynamic> data, {
+    String? tablePrefix,
+  }) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return PendingUpdatesTableData(
+      localId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}local_id'],
+      )!,
+      targetTable: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}target_table'],
+      )!,
+      recordId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}record_id'],
+      )!,
+      dataJson: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}data_json'],
+      )!,
+      schemeOverride: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}scheme_override'],
+      ),
+      attempts: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}attempts'],
+      )!,
+      lastError: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}last_error'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+    );
+  }
+
+  @override
+  $PendingUpdatesTableTable createAlias(String alias) {
+    return $PendingUpdatesTableTable(attachedDatabase, alias);
+  }
+}
+
+class PendingUpdatesTableData extends DataClass
+    implements Insertable<PendingUpdatesTableData> {
+  final int localId;
+  final String targetTable;
+  final String recordId;
+  final String dataJson;
+  final String? schemeOverride;
+  final int attempts;
+  final String? lastError;
+  final DateTime createdAt;
+  const PendingUpdatesTableData({
+    required this.localId,
+    required this.targetTable,
+    required this.recordId,
+    required this.dataJson,
+    this.schemeOverride,
+    required this.attempts,
+    this.lastError,
+    required this.createdAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['local_id'] = Variable<int>(localId);
+    map['target_table'] = Variable<String>(targetTable);
+    map['record_id'] = Variable<String>(recordId);
+    map['data_json'] = Variable<String>(dataJson);
+    if (!nullToAbsent || schemeOverride != null) {
+      map['scheme_override'] = Variable<String>(schemeOverride);
+    }
+    map['attempts'] = Variable<int>(attempts);
+    if (!nullToAbsent || lastError != null) {
+      map['last_error'] = Variable<String>(lastError);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    return map;
+  }
+
+  PendingUpdatesTableCompanion toCompanion(bool nullToAbsent) {
+    return PendingUpdatesTableCompanion(
+      localId: Value(localId),
+      targetTable: Value(targetTable),
+      recordId: Value(recordId),
+      dataJson: Value(dataJson),
+      schemeOverride: schemeOverride == null && nullToAbsent
+          ? const Value.absent()
+          : Value(schemeOverride),
+      attempts: Value(attempts),
+      lastError: lastError == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lastError),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory PendingUpdatesTableData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return PendingUpdatesTableData(
+      localId: serializer.fromJson<int>(json['localId']),
+      targetTable: serializer.fromJson<String>(json['targetTable']),
+      recordId: serializer.fromJson<String>(json['recordId']),
+      dataJson: serializer.fromJson<String>(json['dataJson']),
+      schemeOverride: serializer.fromJson<String?>(json['schemeOverride']),
+      attempts: serializer.fromJson<int>(json['attempts']),
+      lastError: serializer.fromJson<String?>(json['lastError']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'localId': serializer.toJson<int>(localId),
+      'targetTable': serializer.toJson<String>(targetTable),
+      'recordId': serializer.toJson<String>(recordId),
+      'dataJson': serializer.toJson<String>(dataJson),
+      'schemeOverride': serializer.toJson<String?>(schemeOverride),
+      'attempts': serializer.toJson<int>(attempts),
+      'lastError': serializer.toJson<String?>(lastError),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+    };
+  }
+
+  PendingUpdatesTableData copyWith({
+    int? localId,
+    String? targetTable,
+    String? recordId,
+    String? dataJson,
+    Value<String?> schemeOverride = const Value.absent(),
+    int? attempts,
+    Value<String?> lastError = const Value.absent(),
+    DateTime? createdAt,
+  }) => PendingUpdatesTableData(
+    localId: localId ?? this.localId,
+    targetTable: targetTable ?? this.targetTable,
+    recordId: recordId ?? this.recordId,
+    dataJson: dataJson ?? this.dataJson,
+    schemeOverride: schemeOverride.present
+        ? schemeOverride.value
+        : this.schemeOverride,
+    attempts: attempts ?? this.attempts,
+    lastError: lastError.present ? lastError.value : this.lastError,
+    createdAt: createdAt ?? this.createdAt,
+  );
+  PendingUpdatesTableData copyWithCompanion(PendingUpdatesTableCompanion data) {
+    return PendingUpdatesTableData(
+      localId: data.localId.present ? data.localId.value : this.localId,
+      targetTable: data.targetTable.present
+          ? data.targetTable.value
+          : this.targetTable,
+      recordId: data.recordId.present ? data.recordId.value : this.recordId,
+      dataJson: data.dataJson.present ? data.dataJson.value : this.dataJson,
+      schemeOverride: data.schemeOverride.present
+          ? data.schemeOverride.value
+          : this.schemeOverride,
+      attempts: data.attempts.present ? data.attempts.value : this.attempts,
+      lastError: data.lastError.present ? data.lastError.value : this.lastError,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('PendingUpdatesTableData(')
+          ..write('localId: $localId, ')
+          ..write('targetTable: $targetTable, ')
+          ..write('recordId: $recordId, ')
+          ..write('dataJson: $dataJson, ')
+          ..write('schemeOverride: $schemeOverride, ')
+          ..write('attempts: $attempts, ')
+          ..write('lastError: $lastError, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    localId,
+    targetTable,
+    recordId,
+    dataJson,
+    schemeOverride,
+    attempts,
+    lastError,
+    createdAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is PendingUpdatesTableData &&
+          other.localId == this.localId &&
+          other.targetTable == this.targetTable &&
+          other.recordId == this.recordId &&
+          other.dataJson == this.dataJson &&
+          other.schemeOverride == this.schemeOverride &&
+          other.attempts == this.attempts &&
+          other.lastError == this.lastError &&
+          other.createdAt == this.createdAt);
+}
+
+class PendingUpdatesTableCompanion
+    extends UpdateCompanion<PendingUpdatesTableData> {
+  final Value<int> localId;
+  final Value<String> targetTable;
+  final Value<String> recordId;
+  final Value<String> dataJson;
+  final Value<String?> schemeOverride;
+  final Value<int> attempts;
+  final Value<String?> lastError;
+  final Value<DateTime> createdAt;
+  const PendingUpdatesTableCompanion({
+    this.localId = const Value.absent(),
+    this.targetTable = const Value.absent(),
+    this.recordId = const Value.absent(),
+    this.dataJson = const Value.absent(),
+    this.schemeOverride = const Value.absent(),
+    this.attempts = const Value.absent(),
+    this.lastError = const Value.absent(),
+    this.createdAt = const Value.absent(),
+  });
+  PendingUpdatesTableCompanion.insert({
+    this.localId = const Value.absent(),
+    required String targetTable,
+    required String recordId,
+    required String dataJson,
+    this.schemeOverride = const Value.absent(),
+    this.attempts = const Value.absent(),
+    this.lastError = const Value.absent(),
+    this.createdAt = const Value.absent(),
+  }) : targetTable = Value(targetTable),
+       recordId = Value(recordId),
+       dataJson = Value(dataJson);
+  static Insertable<PendingUpdatesTableData> custom({
+    Expression<int>? localId,
+    Expression<String>? targetTable,
+    Expression<String>? recordId,
+    Expression<String>? dataJson,
+    Expression<String>? schemeOverride,
+    Expression<int>? attempts,
+    Expression<String>? lastError,
+    Expression<DateTime>? createdAt,
+  }) {
+    return RawValuesInsertable({
+      if (localId != null) 'local_id': localId,
+      if (targetTable != null) 'target_table': targetTable,
+      if (recordId != null) 'record_id': recordId,
+      if (dataJson != null) 'data_json': dataJson,
+      if (schemeOverride != null) 'scheme_override': schemeOverride,
+      if (attempts != null) 'attempts': attempts,
+      if (lastError != null) 'last_error': lastError,
+      if (createdAt != null) 'created_at': createdAt,
+    });
+  }
+
+  PendingUpdatesTableCompanion copyWith({
+    Value<int>? localId,
+    Value<String>? targetTable,
+    Value<String>? recordId,
+    Value<String>? dataJson,
+    Value<String?>? schemeOverride,
+    Value<int>? attempts,
+    Value<String?>? lastError,
+    Value<DateTime>? createdAt,
+  }) {
+    return PendingUpdatesTableCompanion(
+      localId: localId ?? this.localId,
+      targetTable: targetTable ?? this.targetTable,
+      recordId: recordId ?? this.recordId,
+      dataJson: dataJson ?? this.dataJson,
+      schemeOverride: schemeOverride ?? this.schemeOverride,
+      attempts: attempts ?? this.attempts,
+      lastError: lastError ?? this.lastError,
+      createdAt: createdAt ?? this.createdAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (localId.present) {
+      map['local_id'] = Variable<int>(localId.value);
+    }
+    if (targetTable.present) {
+      map['target_table'] = Variable<String>(targetTable.value);
+    }
+    if (recordId.present) {
+      map['record_id'] = Variable<String>(recordId.value);
+    }
+    if (dataJson.present) {
+      map['data_json'] = Variable<String>(dataJson.value);
+    }
+    if (schemeOverride.present) {
+      map['scheme_override'] = Variable<String>(schemeOverride.value);
+    }
+    if (attempts.present) {
+      map['attempts'] = Variable<int>(attempts.value);
+    }
+    if (lastError.present) {
+      map['last_error'] = Variable<String>(lastError.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('PendingUpdatesTableCompanion(')
+          ..write('localId: $localId, ')
+          ..write('targetTable: $targetTable, ')
+          ..write('recordId: $recordId, ')
+          ..write('dataJson: $dataJson, ')
+          ..write('schemeOverride: $schemeOverride, ')
+          ..write('attempts: $attempts, ')
+          ..write('lastError: $lastError, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -1520,6 +2578,13 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $InventoriesTableTable inventoriesTable = $InventoriesTableTable(
     this,
   );
+  late final $PermissionSettingsTableTable permissionSettingsTable =
+      $PermissionSettingsTableTable(this);
+  late final $TimeReportsTableTable timeReportsTable = $TimeReportsTableTable(
+    this,
+  );
+  late final $PendingUpdatesTableTable pendingUpdatesTable =
+      $PendingUpdatesTableTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -1530,6 +2595,9 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     projectsTable,
     usersTable,
     inventoriesTable,
+    permissionSettingsTable,
+    timeReportsTable,
+    pendingUpdatesTable,
   ];
 }
 
@@ -2451,6 +3519,630 @@ typedef $$InventoriesTableTableProcessedTableManager =
       InventoriesTableData,
       PrefetchHooks Function()
     >;
+typedef $$PermissionSettingsTableTableCreateCompanionBuilder =
+    PermissionSettingsTableCompanion Function({
+      required String id,
+      required String rawJson,
+      required DateTime cachedAt,
+      Value<int> rowid,
+    });
+typedef $$PermissionSettingsTableTableUpdateCompanionBuilder =
+    PermissionSettingsTableCompanion Function({
+      Value<String> id,
+      Value<String> rawJson,
+      Value<DateTime> cachedAt,
+      Value<int> rowid,
+    });
+
+class $$PermissionSettingsTableTableFilterComposer
+    extends Composer<_$AppDatabase, $PermissionSettingsTableTable> {
+  $$PermissionSettingsTableTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get rawJson => $composableBuilder(
+    column: $table.rawJson,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get cachedAt => $composableBuilder(
+    column: $table.cachedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$PermissionSettingsTableTableOrderingComposer
+    extends Composer<_$AppDatabase, $PermissionSettingsTableTable> {
+  $$PermissionSettingsTableTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get rawJson => $composableBuilder(
+    column: $table.rawJson,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get cachedAt => $composableBuilder(
+    column: $table.cachedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$PermissionSettingsTableTableAnnotationComposer
+    extends Composer<_$AppDatabase, $PermissionSettingsTableTable> {
+  $$PermissionSettingsTableTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get rawJson =>
+      $composableBuilder(column: $table.rawJson, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get cachedAt =>
+      $composableBuilder(column: $table.cachedAt, builder: (column) => column);
+}
+
+class $$PermissionSettingsTableTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $PermissionSettingsTableTable,
+          PermissionSettingsTableData,
+          $$PermissionSettingsTableTableFilterComposer,
+          $$PermissionSettingsTableTableOrderingComposer,
+          $$PermissionSettingsTableTableAnnotationComposer,
+          $$PermissionSettingsTableTableCreateCompanionBuilder,
+          $$PermissionSettingsTableTableUpdateCompanionBuilder,
+          (
+            PermissionSettingsTableData,
+            BaseReferences<
+              _$AppDatabase,
+              $PermissionSettingsTableTable,
+              PermissionSettingsTableData
+            >,
+          ),
+          PermissionSettingsTableData,
+          PrefetchHooks Function()
+        > {
+  $$PermissionSettingsTableTableTableManager(
+    _$AppDatabase db,
+    $PermissionSettingsTableTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$PermissionSettingsTableTableFilterComposer(
+                $db: db,
+                $table: table,
+              ),
+          createOrderingComposer: () =>
+              $$PermissionSettingsTableTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$PermissionSettingsTableTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> rawJson = const Value.absent(),
+                Value<DateTime> cachedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => PermissionSettingsTableCompanion(
+                id: id,
+                rawJson: rawJson,
+                cachedAt: cachedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String rawJson,
+                required DateTime cachedAt,
+                Value<int> rowid = const Value.absent(),
+              }) => PermissionSettingsTableCompanion.insert(
+                id: id,
+                rawJson: rawJson,
+                cachedAt: cachedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$PermissionSettingsTableTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $PermissionSettingsTableTable,
+      PermissionSettingsTableData,
+      $$PermissionSettingsTableTableFilterComposer,
+      $$PermissionSettingsTableTableOrderingComposer,
+      $$PermissionSettingsTableTableAnnotationComposer,
+      $$PermissionSettingsTableTableCreateCompanionBuilder,
+      $$PermissionSettingsTableTableUpdateCompanionBuilder,
+      (
+        PermissionSettingsTableData,
+        BaseReferences<
+          _$AppDatabase,
+          $PermissionSettingsTableTable,
+          PermissionSettingsTableData
+        >,
+      ),
+      PermissionSettingsTableData,
+      PrefetchHooks Function()
+    >;
+typedef $$TimeReportsTableTableCreateCompanionBuilder =
+    TimeReportsTableCompanion Function({
+      required String id,
+      required String rawJson,
+      required DateTime cachedAt,
+      Value<int> rowid,
+    });
+typedef $$TimeReportsTableTableUpdateCompanionBuilder =
+    TimeReportsTableCompanion Function({
+      Value<String> id,
+      Value<String> rawJson,
+      Value<DateTime> cachedAt,
+      Value<int> rowid,
+    });
+
+class $$TimeReportsTableTableFilterComposer
+    extends Composer<_$AppDatabase, $TimeReportsTableTable> {
+  $$TimeReportsTableTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get rawJson => $composableBuilder(
+    column: $table.rawJson,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get cachedAt => $composableBuilder(
+    column: $table.cachedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$TimeReportsTableTableOrderingComposer
+    extends Composer<_$AppDatabase, $TimeReportsTableTable> {
+  $$TimeReportsTableTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get rawJson => $composableBuilder(
+    column: $table.rawJson,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get cachedAt => $composableBuilder(
+    column: $table.cachedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$TimeReportsTableTableAnnotationComposer
+    extends Composer<_$AppDatabase, $TimeReportsTableTable> {
+  $$TimeReportsTableTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get rawJson =>
+      $composableBuilder(column: $table.rawJson, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get cachedAt =>
+      $composableBuilder(column: $table.cachedAt, builder: (column) => column);
+}
+
+class $$TimeReportsTableTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $TimeReportsTableTable,
+          TimeReportsTableData,
+          $$TimeReportsTableTableFilterComposer,
+          $$TimeReportsTableTableOrderingComposer,
+          $$TimeReportsTableTableAnnotationComposer,
+          $$TimeReportsTableTableCreateCompanionBuilder,
+          $$TimeReportsTableTableUpdateCompanionBuilder,
+          (
+            TimeReportsTableData,
+            BaseReferences<
+              _$AppDatabase,
+              $TimeReportsTableTable,
+              TimeReportsTableData
+            >,
+          ),
+          TimeReportsTableData,
+          PrefetchHooks Function()
+        > {
+  $$TimeReportsTableTableTableManager(
+    _$AppDatabase db,
+    $TimeReportsTableTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$TimeReportsTableTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$TimeReportsTableTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$TimeReportsTableTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> rawJson = const Value.absent(),
+                Value<DateTime> cachedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => TimeReportsTableCompanion(
+                id: id,
+                rawJson: rawJson,
+                cachedAt: cachedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String rawJson,
+                required DateTime cachedAt,
+                Value<int> rowid = const Value.absent(),
+              }) => TimeReportsTableCompanion.insert(
+                id: id,
+                rawJson: rawJson,
+                cachedAt: cachedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$TimeReportsTableTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $TimeReportsTableTable,
+      TimeReportsTableData,
+      $$TimeReportsTableTableFilterComposer,
+      $$TimeReportsTableTableOrderingComposer,
+      $$TimeReportsTableTableAnnotationComposer,
+      $$TimeReportsTableTableCreateCompanionBuilder,
+      $$TimeReportsTableTableUpdateCompanionBuilder,
+      (
+        TimeReportsTableData,
+        BaseReferences<
+          _$AppDatabase,
+          $TimeReportsTableTable,
+          TimeReportsTableData
+        >,
+      ),
+      TimeReportsTableData,
+      PrefetchHooks Function()
+    >;
+typedef $$PendingUpdatesTableTableCreateCompanionBuilder =
+    PendingUpdatesTableCompanion Function({
+      Value<int> localId,
+      required String targetTable,
+      required String recordId,
+      required String dataJson,
+      Value<String?> schemeOverride,
+      Value<int> attempts,
+      Value<String?> lastError,
+      Value<DateTime> createdAt,
+    });
+typedef $$PendingUpdatesTableTableUpdateCompanionBuilder =
+    PendingUpdatesTableCompanion Function({
+      Value<int> localId,
+      Value<String> targetTable,
+      Value<String> recordId,
+      Value<String> dataJson,
+      Value<String?> schemeOverride,
+      Value<int> attempts,
+      Value<String?> lastError,
+      Value<DateTime> createdAt,
+    });
+
+class $$PendingUpdatesTableTableFilterComposer
+    extends Composer<_$AppDatabase, $PendingUpdatesTableTable> {
+  $$PendingUpdatesTableTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get localId => $composableBuilder(
+    column: $table.localId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get targetTable => $composableBuilder(
+    column: $table.targetTable,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get recordId => $composableBuilder(
+    column: $table.recordId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get dataJson => $composableBuilder(
+    column: $table.dataJson,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get schemeOverride => $composableBuilder(
+    column: $table.schemeOverride,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get attempts => $composableBuilder(
+    column: $table.attempts,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get lastError => $composableBuilder(
+    column: $table.lastError,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$PendingUpdatesTableTableOrderingComposer
+    extends Composer<_$AppDatabase, $PendingUpdatesTableTable> {
+  $$PendingUpdatesTableTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get localId => $composableBuilder(
+    column: $table.localId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get targetTable => $composableBuilder(
+    column: $table.targetTable,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get recordId => $composableBuilder(
+    column: $table.recordId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get dataJson => $composableBuilder(
+    column: $table.dataJson,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get schemeOverride => $composableBuilder(
+    column: $table.schemeOverride,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get attempts => $composableBuilder(
+    column: $table.attempts,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get lastError => $composableBuilder(
+    column: $table.lastError,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$PendingUpdatesTableTableAnnotationComposer
+    extends Composer<_$AppDatabase, $PendingUpdatesTableTable> {
+  $$PendingUpdatesTableTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get localId =>
+      $composableBuilder(column: $table.localId, builder: (column) => column);
+
+  GeneratedColumn<String> get targetTable => $composableBuilder(
+    column: $table.targetTable,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get recordId =>
+      $composableBuilder(column: $table.recordId, builder: (column) => column);
+
+  GeneratedColumn<String> get dataJson =>
+      $composableBuilder(column: $table.dataJson, builder: (column) => column);
+
+  GeneratedColumn<String> get schemeOverride => $composableBuilder(
+    column: $table.schemeOverride,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get attempts =>
+      $composableBuilder(column: $table.attempts, builder: (column) => column);
+
+  GeneratedColumn<String> get lastError =>
+      $composableBuilder(column: $table.lastError, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+}
+
+class $$PendingUpdatesTableTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $PendingUpdatesTableTable,
+          PendingUpdatesTableData,
+          $$PendingUpdatesTableTableFilterComposer,
+          $$PendingUpdatesTableTableOrderingComposer,
+          $$PendingUpdatesTableTableAnnotationComposer,
+          $$PendingUpdatesTableTableCreateCompanionBuilder,
+          $$PendingUpdatesTableTableUpdateCompanionBuilder,
+          (
+            PendingUpdatesTableData,
+            BaseReferences<
+              _$AppDatabase,
+              $PendingUpdatesTableTable,
+              PendingUpdatesTableData
+            >,
+          ),
+          PendingUpdatesTableData,
+          PrefetchHooks Function()
+        > {
+  $$PendingUpdatesTableTableTableManager(
+    _$AppDatabase db,
+    $PendingUpdatesTableTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$PendingUpdatesTableTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$PendingUpdatesTableTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$PendingUpdatesTableTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<int> localId = const Value.absent(),
+                Value<String> targetTable = const Value.absent(),
+                Value<String> recordId = const Value.absent(),
+                Value<String> dataJson = const Value.absent(),
+                Value<String?> schemeOverride = const Value.absent(),
+                Value<int> attempts = const Value.absent(),
+                Value<String?> lastError = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+              }) => PendingUpdatesTableCompanion(
+                localId: localId,
+                targetTable: targetTable,
+                recordId: recordId,
+                dataJson: dataJson,
+                schemeOverride: schemeOverride,
+                attempts: attempts,
+                lastError: lastError,
+                createdAt: createdAt,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> localId = const Value.absent(),
+                required String targetTable,
+                required String recordId,
+                required String dataJson,
+                Value<String?> schemeOverride = const Value.absent(),
+                Value<int> attempts = const Value.absent(),
+                Value<String?> lastError = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+              }) => PendingUpdatesTableCompanion.insert(
+                localId: localId,
+                targetTable: targetTable,
+                recordId: recordId,
+                dataJson: dataJson,
+                schemeOverride: schemeOverride,
+                attempts: attempts,
+                lastError: lastError,
+                createdAt: createdAt,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$PendingUpdatesTableTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $PendingUpdatesTableTable,
+      PendingUpdatesTableData,
+      $$PendingUpdatesTableTableFilterComposer,
+      $$PendingUpdatesTableTableOrderingComposer,
+      $$PendingUpdatesTableTableAnnotationComposer,
+      $$PendingUpdatesTableTableCreateCompanionBuilder,
+      $$PendingUpdatesTableTableUpdateCompanionBuilder,
+      (
+        PendingUpdatesTableData,
+        BaseReferences<
+          _$AppDatabase,
+          $PendingUpdatesTableTable,
+          PendingUpdatesTableData
+        >,
+      ),
+      PendingUpdatesTableData,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -2465,4 +4157,13 @@ class $AppDatabaseManager {
       $$UsersTableTableTableManager(_db, _db.usersTable);
   $$InventoriesTableTableTableManager get inventoriesTable =>
       $$InventoriesTableTableTableManager(_db, _db.inventoriesTable);
+  $$PermissionSettingsTableTableTableManager get permissionSettingsTable =>
+      $$PermissionSettingsTableTableTableManager(
+        _db,
+        _db.permissionSettingsTable,
+      );
+  $$TimeReportsTableTableTableManager get timeReportsTable =>
+      $$TimeReportsTableTableTableManager(_db, _db.timeReportsTable);
+  $$PendingUpdatesTableTableTableManager get pendingUpdatesTable =>
+      $$PendingUpdatesTableTableTableManager(_db, _db.pendingUpdatesTable);
 }

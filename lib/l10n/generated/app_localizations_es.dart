@@ -757,4 +757,71 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get additionalClockInReasonHint =>
       'Escribe la razón de la entrada adicional';
+
+  @override
+  String get accessDenied => 'Sin permisos';
+
+  @override
+  String get modulePermissionRequired =>
+      'No tienes los permisos View y Read necesarios para acceder a esta sección.';
+
+  @override
+  String get timeReports => 'Reportes de tiempo';
+
+  @override
+  String get dailyTimeline => 'Línea de tiempo del día';
+
+  @override
+  String get noTimeReportsForDate =>
+      'No hay reportes de tiempo para esta fecha.';
+
+  @override
+  String get editTimeReport => 'Editar reporte de tiempo';
+
+  @override
+  String get reportedTime => 'Hora reportada';
+
+  @override
+  String get entryType => 'Entrada';
+
+  @override
+  String get exitType => 'Salida';
+
+  @override
+  String get timeReportUpdated =>
+      'Reporte de tiempo actualizado correctamente.';
+
+  @override
+  String get updatePermissionRequired =>
+      'Se requiere el permiso Update para editar reportes.';
+
+  @override
+  String get yes => 'Sí';
+
+  @override
+  String get no => 'No';
+
+  @override
+  String get registerCustomerLocation => 'Registrar ubicación del cliente';
+
+  @override
+  String get customerLocationConfirmation =>
+      'Está a punto de registrar la ubicación del cliente. ¿Se encuentra actualmente en el lugar de trabajo?';
+
+  @override
+  String get showInMaps => 'Mostrar en Maps';
+
+  @override
+  String get couldNotOpenMaps => 'No fue posible abrir Maps.';
+
+  @override
+  String uploadingImagePercent(int percent) {
+    return 'Subiendo imagen $percent%';
+  }
+
+  @override
+  String get takePhoto => 'Tomar foto';
+
+  @override
+  String get noEvidenceImages => 'Esta orden todavía no tiene imágenes.';
 }

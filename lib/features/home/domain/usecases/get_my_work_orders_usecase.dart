@@ -17,6 +17,10 @@ class GetMyWorkOrdersUsecase {
     return _repo.getWorkOrdersCache();
   }
 
+  Future<void> saveCached(List<WorkOrderEntity> workOrders) {
+    return _repo.saveWorkOrdersCache(workOrders);
+  }
+
   List<WorkOrderEntity> _filterByAssigned(
     List<WorkOrderEntity> list,
     String userId,

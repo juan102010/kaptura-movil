@@ -12,7 +12,6 @@ import '../../domain/entities/clock_coords.dart';
 
 import '../../../../app/di/providers.dart';
 import '../../../../core/network/internet_status.dart';
-import '../../../../core/services/location_service.dart';
 import '../../../../core/localization/localization_extension.dart';
 
 class HomePage extends ConsumerStatefulWidget {
@@ -48,77 +47,7 @@ class _HomePageState extends ConsumerState<HomePage> {
         if (!mounted) return;
 
         await notifier.fetchMyWorkOrders(skipRemote: isOffline);
-        if (!mounted) return;
-
-        await _ensureLocationPermissionOnStart();
       });
-    }
-  }
-
-  Future<void> _ensureLocationPermissionOnStart() async {
-    final location = ref.read(locationServiceProvider);
-
-    final state = await location.checkPermissionState();
-    if (!mounted) return;
-
-    if (state == LocationPermissionState.granted) return;
-
-    if (state == LocationPermissionState.serviceOff) {
-      final go = await showDialog<bool>(
-        context: context,
-        builder: (ctx) => AlertDialog(
-          title: Text(context.l10n.locationDisabled),
-          content: Text(context.l10n.locationDisabledMessage),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx, false),
-              child: Text(context.l10n.notNow),
-            ),
-            ElevatedButton(
-              onPressed: () => Navigator.pop(ctx, true),
-              child: Text(context.l10n.openSettings),
-            ),
-          ],
-        ),
-      );
-      if (!mounted) return;
-
-      if (go == true) {
-        await location.openLocationSettings();
-      }
-      return;
-    }
-
-    if (state == LocationPermissionState.denied) {
-      final res = await location.requestPermission();
-      if (!mounted) return;
-
-      if (res == LocationPermissionState.granted) return;
-      if (res == LocationPermissionState.denied) return;
-    }
-
-    final open = await showDialog<bool>(
-      context: context,
-      barrierDismissible: false,
-      builder: (ctx) => AlertDialog(
-        title: Text(context.l10n.permissionRequired),
-        content: Text(context.l10n.locationPermissionMessage),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: Text(context.l10n.cancel),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            child: Text(context.l10n.openSettings),
-          ),
-        ],
-      ),
-    );
-    if (!mounted) return;
-
-    if (open == true) {
-      await location.openAppSettings();
     }
   }
 

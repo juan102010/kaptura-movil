@@ -93,4 +93,19 @@ class CustomersController extends StateNotifier<CustomersState> {
       fromCache: false,
     );
   }
+
+  Future<void> applyCustomerPatch(
+    String customerId,
+    Map<String, dynamic> patch,
+  ) async {
+    final updated = state.customers
+        .map(
+          (customer) => customer.matchesId(customerId)
+              ? customer.withPatchedRawData(patch)
+              : customer,
+        )
+        .toList(growable: false);
+    state = state.copyWith(customers: updated);
+    await _usecase.saveCached(updated);
+  }
 }

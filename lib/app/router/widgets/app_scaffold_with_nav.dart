@@ -1,44 +1,68 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/localization/localization_extension.dart';
+import '../../../features/permissions/presentation/controllers/permission_settings_controller.dart';
+import '../../../features/permissions/presentation/providers/permission_settings_providers.dart';
 
-class AppScaffoldWithNav extends StatelessWidget {
-  final StatefulNavigationShell navigationShell;
-
+class AppScaffoldWithNav extends ConsumerWidget {
   const AppScaffoldWithNav({super.key, required this.navigationShell});
 
+  final StatefulNavigationShell navigationShell;
+
   static const _bg = Color(0xFFF6F7FB);
-  static const _brand = Color(0xFF0B2A4A);
-  static const _softBlue = Color(0xFFE7EEF8);
 
-  void _onTap(int index) {
-    debugPrint(
-      '[BottomNav] tap -> targetIndex: $index | currentIndex: ${navigationShell.currentIndex}',
-    );
-
+  void _onTap(int branchIndex) {
     navigationShell.goBranch(
-      index,
-      // si vuelves a tocar el tab activo, vuelve al root de ese tab
-      initialLocation: index == navigationShell.currentIndex,
+      branchIndex,
+      initialLocation: branchIndex == navigationShell.currentIndex,
     );
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final permissions = ref.watch(permissionSettingsControllerProvider);
     final current = navigationShell.currentIndex;
-
-    debugPrint('[BottomNav] build -> currentIndex: $current');
+    final items = <_NavDestination>[
+      if (permissions.hasPermission(ProtectedModule.workOrders, 'View'))
+        _NavDestination(
+          branchIndex: 0,
+          label: context.l10n.workOrders,
+          icon: Icons.assignment_outlined,
+          selectedIcon: Icons.assignment_rounded,
+        ),
+      _NavDestination(
+        branchIndex: 1,
+        label: context.l10n.home,
+        icon: Icons.home_outlined,
+        selectedIcon: Icons.home_rounded,
+      ),
+      if (permissions.hasPermission(ProtectedModule.inventory, 'View'))
+        _NavDestination(
+          branchIndex: 2,
+          label: context.l10n.inventory,
+          icon: Icons.inventory_2_outlined,
+          selectedIcon: Icons.inventory_2_rounded,
+        ),
+      if (permissions.hasPermission(ProtectedModule.timeReports, 'View'))
+        _NavDestination(
+          branchIndex: 3,
+          label: context.l10n.timeReports,
+          icon: Icons.timeline_outlined,
+          selectedIcon: Icons.timeline_rounded,
+        ),
+      _NavDestination(
+        branchIndex: 4,
+        label: context.l10n.settings,
+        icon: Icons.settings_outlined,
+        selectedIcon: Icons.settings_rounded,
+      ),
+    ];
 
     return Scaffold(
       backgroundColor: _bg,
-
-      // ✅ IMPORTANTE:
-      // Con StatefulShellRoute.indexedStack NO animamos el body para evitar "flash".
-      // El cambio de tab debe ser instantáneo y limpio (como apps reales).
       body: navigationShell,
-
-      // ✅ Bottom bar flotante (pill) + chip seleccionado + dot arriba
       bottomNavigationBar: SafeArea(
         top: false,
         child: Padding(
@@ -57,91 +81,98 @@ class AppScaffoldWithNav extends StatelessWidget {
                 ),
               ],
             ),
-            child: Theme(
-              data: Theme.of(context).copyWith(
-                splashColor: Colors.transparent,
-                highlightColor: Colors.transparent,
-              ),
-              child: BottomNavigationBar(
-                currentIndex: current,
-                onTap: _onTap,
-                type: BottomNavigationBarType.fixed,
-                backgroundColor: Colors.transparent,
-                elevation: 0,
-                selectedFontSize: 12,
-                unselectedFontSize: 12,
-                selectedItemColor: _brand,
-                unselectedItemColor: _brand.withValues(alpha: 0.55),
-                showUnselectedLabels: true,
-                items: [
-                  // 0) Work Orders
-                  _navItem(
-                    selected: current == 0,
-                    label: context.l10n.workOrders,
-                    icon: Icons.assignment_outlined,
-                    selectedIcon: Icons.assignment_rounded,
-                  ),
-
-                  // 1) Home%
-                  _navItem(
-                    selected: current == 1,
-                    label: context.l10n.home,
-                    icon: Icons.home_outlined,
-                    selectedIcon: Icons.home_rounded,
-                  ),
-
-                  // 2) Inventory
-                  _navItem(
-                    selected: current == 2,
-                    label: context.l10n.inventory,
-                    icon: Icons.inventory_2_outlined,
-                    selectedIcon: Icons.inventory_2_rounded,
-                  ),
-
-                  // 3) Settings
-                  _navItem(
-                    selected: current == 3,
-                    label: context.l10n.settings,
-                    icon: Icons.settings_outlined,
-                    selectedIcon: Icons.settings_rounded,
-                  ),
-                ],
-              ),
+            child: Row(
+              children: items
+                  .map(
+                    (item) => Expanded(
+                      child: _NavButton(
+                        destination: item,
+                        selected: current == item.branchIndex,
+                        onTap: () => _onTap(item.branchIndex),
+                      ),
+                    ),
+                  )
+                  .toList(growable: false),
             ),
           ),
         ),
       ),
     );
   }
+}
 
-  BottomNavigationBarItem _navItem({
-    required bool selected,
-    required String label,
-    required IconData icon,
-    required IconData selectedIcon,
-  }) {
-    final widgetIcon = selected
-        ? _SelectedNavIcon(
-            icon: selectedIcon,
-            brand: _brand,
-            softBlue: _softBlue,
-          )
-        : Icon(icon);
+class _NavDestination {
+  const _NavDestination({
+    required this.branchIndex,
+    required this.label,
+    required this.icon,
+    required this.selectedIcon,
+  });
 
-    return BottomNavigationBarItem(icon: widgetIcon, label: label);
+  final int branchIndex;
+  final String label;
+  final IconData icon;
+  final IconData selectedIcon;
+}
+
+class _NavButton extends StatelessWidget {
+  const _NavButton({
+    required this.destination,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final _NavDestination destination;
+  final bool selected;
+  final VoidCallback onTap;
+
+  static const _brand = Color(0xFF0B2A4A);
+
+  @override
+  Widget build(BuildContext context) {
+    final color = selected ? _brand : _brand.withValues(alpha: 0.55);
+
+    return Semantics(
+      button: true,
+      selected: selected,
+      label: destination.label,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(20),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            if (selected)
+              _SelectedNavIcon(icon: destination.selectedIcon)
+            else
+              SizedBox(
+                height: 34,
+                child: Center(child: Icon(destination.icon, color: color)),
+              ),
+            const SizedBox(height: 3),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 2),
+              child: Text(
+                destination.label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(color: color, fontSize: 12),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 
 class _SelectedNavIcon extends StatelessWidget {
-  const _SelectedNavIcon({
-    required this.icon,
-    required this.brand,
-    required this.softBlue,
-  });
+  const _SelectedNavIcon({required this.icon});
 
   final IconData icon;
-  final Color brand;
-  final Color softBlue;
+
+  static const _brand = Color(0xFF0B2A4A);
+  static const _softBlue = Color(0xFFE7EEF8);
 
   @override
   Widget build(BuildContext context) {
@@ -157,12 +188,12 @@ class _SelectedNavIcon extends StatelessWidget {
               width: 6,
               height: 6,
               decoration: BoxDecoration(
-                color: brand,
+                color: _brand,
                 shape: BoxShape.circle,
                 boxShadow: [
                   BoxShadow(
                     blurRadius: 10,
-                    color: brand.withValues(alpha: 0.25),
+                    color: _brand.withValues(alpha: 0.25),
                   ),
                 ],
               ),
@@ -173,11 +204,11 @@ class _SelectedNavIcon extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
               decoration: BoxDecoration(
-                color: softBlue,
+                color: _softBlue,
                 borderRadius: BorderRadius.circular(14),
                 border: Border.all(color: Colors.black.withValues(alpha: 0.04)),
               ),
-              child: Icon(icon, color: brand, size: 22),
+              child: Icon(icon, color: _brand, size: 22),
             ),
           ),
         ],

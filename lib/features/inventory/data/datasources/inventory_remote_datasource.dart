@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 
+import '../../../../core/services/update_data_by_id_service.dart';
 import '../models/inventory_item_model.dart';
 
 abstract class InventoryRemoteDataSource {
@@ -12,9 +13,13 @@ abstract class InventoryRemoteDataSource {
 }
 
 class InventoryRemoteDataSourceImpl implements InventoryRemoteDataSource {
-  InventoryRemoteDataSourceImpl({required this.apiDio});
+  InventoryRemoteDataSourceImpl({
+    required this.apiDio,
+    required this.updateService,
+  });
 
   final Dio apiDio;
+  final UpdateDataByIdService updateService;
 
   @override
   Future<List<InventoryItemModel>> getInventories() async {
@@ -44,26 +49,24 @@ class InventoryRemoteDataSourceImpl implements InventoryRemoteDataSource {
     required int newDefaultQty,
     required int newStockMin,
   }) async {
-    final response = await apiDio.put(
-      '/api/dynamicRow/update-row',
+    final result = await updateService.update(
+      tableName: 'inventories',
+      id: currentItem.id,
       data: {
-        'nombre_de_tabla': 'inventories',
-        'id': currentItem.id,
-        'data': {
-          'num_defaultQty_id': {
-            'oldValue': currentItem.defaultQty,
-            'newValue': newDefaultQty,
-          },
-          'num_stocMin_id': {
-            'oldValue': currentItem.stockMin,
-            'newValue': newStockMin,
-          },
+        'num_defaultQty_id': {
+          'oldValue': currentItem.defaultQty,
+          'newValue': newDefaultQty,
+        },
+        'num_stocMin_id': {
+          'oldValue': currentItem.stockMin,
+          'newValue': newStockMin,
         },
       },
     );
 
-    final body = _asMap(response.data);
-    _ensureOk(body);
+    if (!result.wasQueued) {
+      _ensureOk(_asMap(result.response));
+    }
 
     final nextMap = currentItem.toMap()
       ..['num_defaultQty_id'] = newDefaultQty

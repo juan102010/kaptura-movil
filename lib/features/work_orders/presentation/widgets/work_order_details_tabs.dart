@@ -15,6 +15,7 @@ import '../../../users/domain/entities/user_list_entity.dart';
 import '../../../home/presentation/providers/home_providers.dart';
 import '../../domain/entities/work_order_entity.dart';
 import 'work_order_customer_sheets.dart';
+import 'work_order_history_widgets.dart';
 import 'work_order_details_shared_widgets.dart';
 import 'work_order_timer_widgets.dart';
 import 'work_order_autosave_widgets.dart';
@@ -597,8 +598,6 @@ class _TimeTabState extends ConsumerState<TimeTab> {
   @override
   Widget build(BuildContext context) {
     final workOrderId = _woLocal.id;
-    final start = WorkOrderDetailsUiUtils.s(_woLocal.rawData['date_start_id']);
-    final end = WorkOrderDetailsUiUtils.s(_woLocal.rawData['date_end_id']);
     final historyItems = _woLocal.timeHistory;
 
     return WorkOrderSection(
@@ -622,16 +621,7 @@ class _TimeTabState extends ConsumerState<TimeTab> {
             );
           },
         ),
-        WorkOrderFieldRow(
-          icon: Icons.play_circle_outline_rounded,
-          label: context.l10n.start,
-          value: start,
-        ),
-        WorkOrderFieldRow(
-          icon: Icons.stop_circle_outlined,
-          label: context.l10n.end,
-          value: end,
-        ),
+        WorkOrderTimeHistoryTimeline(history: historyItems),
       ],
     );
   }

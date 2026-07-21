@@ -15,7 +15,10 @@ final inventoryRemoteDataSourceProvider = Provider<InventoryRemoteDataSource>((
   ref,
 ) {
   final dioClients = ref.watch(dioClientsProvider);
-  return InventoryRemoteDataSourceImpl(apiDio: dioClients.api);
+  return InventoryRemoteDataSourceImpl(
+    apiDio: dioClients.api,
+    updateService: ref.watch(updateDataByIdServiceProvider),
+  );
 });
 
 final inventoryLocalDataSourceProvider = Provider<InventoryLocalDataSource>((

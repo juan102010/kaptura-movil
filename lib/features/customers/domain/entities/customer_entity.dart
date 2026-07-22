@@ -25,6 +25,26 @@ class CustomerEntity {
   final String street;
   final Map<String, dynamic> rawData;
 
+  List<double?> get addressLatitudes =>
+      _readCoordinates(rawData['text_addressLatitude_id'], min: -90, max: 90);
+
+  List<double?> get addressLongitudes => _readCoordinates(
+    rawData['text_addressLongitude_id'],
+    min: -180,
+    max: 180,
+  );
+
+  List<String> get streets => _readStrings(rawData['text_street_id']);
+
+  List<String> get addresses => _readStrings(rawData['text_address_id']);
+
+  int get addressCount => [
+    streets.length,
+    addresses.length,
+    addressLatitudes.length,
+    addressLongitudes.length,
+  ].reduce((current, next) => current > next ? current : next);
+
   String get cameraMessage => _readNestedString([
     'obj_categoriesOfServices_id',
     'Camaras',
@@ -79,5 +99,37 @@ class CustomerEntity {
     }
 
     return (current ?? '').toString().trim();
+  }
+
+  static List<double?> _readCoordinates(
+    dynamic values, {
+    required double min,
+    required double max,
+  }) {
+    final rawValues = values is List ? values : <dynamic>[values];
+    return rawValues
+        .map((value) => _parseCoordinate(value, min: min, max: max))
+        .toList(growable: false);
+  }
+
+  static double? _parseCoordinate(
+    dynamic rawValue, {
+    required double min,
+    required double max,
+  }) {
+    final coordinate = rawValue is num
+        ? rawValue.toDouble()
+        : double.tryParse((rawValue ?? '').toString().trim());
+    if (coordinate == null || coordinate < min || coordinate > max) {
+      return null;
+    }
+    return coordinate;
+  }
+
+  static List<String> _readStrings(dynamic values) {
+    final rawValues = values is List ? values : <dynamic>[values];
+    return rawValues
+        .map((value) => (value ?? '').toString().trim())
+        .toList(growable: false);
   }
 }

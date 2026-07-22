@@ -16,6 +16,13 @@ class CustomerModel extends CustomerEntity {
   });
 
   factory CustomerModel.fromMap(Map<String, dynamic> map) {
+    String recordId(dynamic value) {
+      if (value is Map) {
+        return (value[r'$oid'] ?? value['oid'] ?? '').toString().trim();
+      }
+      return (value ?? '').toString().trim();
+    }
+
     String firstStringFromList(dynamic value) {
       if (value is List && value.isNotEmpty) {
         return (value.first ?? '').toString().trim();
@@ -31,7 +38,7 @@ class CustomerModel extends CustomerEntity {
         : [firstName, lastName].where((item) => item.isNotEmpty).join(' ');
 
     return CustomerModel(
-      id: (map['_id'] ?? '').toString().trim(),
+      id: recordId(map['_id']),
       displayName: displayName,
       clientType: (map['rad_clientType_id'] ?? '').toString().trim(),
       mainEmail: (map['text_mainEmail_id'] ?? '').toString().trim(),

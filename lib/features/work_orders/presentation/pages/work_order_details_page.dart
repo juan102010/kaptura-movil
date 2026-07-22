@@ -85,7 +85,11 @@ class WorkOrderDetailsPage extends ConsumerWidget {
                     customers: customersState.customers,
                     projects: projectsState.projects,
                   ),
-                  LocationTab(wo: wo),
+                  LocationTab(
+                    customerId: wo.customerId,
+                    customers: customersState.customers,
+                    workLocation: wo.workLocation,
+                  ),
                   CredentialsNotesTab(
                     customerId: wo.customerId,
                     customers: customersState.customers,

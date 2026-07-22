@@ -682,46 +682,47 @@ class TechTab extends ConsumerWidget {
 }
 
 class LocationTab extends ConsumerStatefulWidget {
-  const LocationTab({super.key, required this.wo});
+  const LocationTab({
+    super.key,
+    required this.customerId,
+    required this.customers,
+    required this.workLocation,
+  });
 
-  final WorkOrderEntity wo;
+  final String customerId;
+  final List<CustomerEntity> customers;
+  final String workLocation;
 
   @override
   ConsumerState<LocationTab> createState() => _LocationTabState();
 }
 
 class _LocationTabState extends ConsumerState<LocationTab> {
-  late String _location;
   bool _saving = false;
 
   @override
-  void initState() {
-    super.initState();
-    _location = widget.wo.workLocation;
-  }
-
-  @override
-  void didUpdateWidget(covariant LocationTab oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (!_saving && oldWidget.wo.workLocation != widget.wo.workLocation) {
-      _location = widget.wo.workLocation;
-    }
-  }
-
-  @override
   Widget build(BuildContext context) {
-    final coordinates = WorkCoordinates.tryParse(_location);
+    final customer = _resolveCustomer();
+    final coordinates = customer == null
+        ? null
+        : WorkCoordinates.tryFromCustomer(customer, widget.workLocation);
+    final addressIndex = customer == null
+        ? null
+        : WorkCoordinates.addressIndexFor(customer, widget.workLocation);
+    final location = coordinates?.formatted ?? '';
     return WorkOrderSection(
       title: context.l10n.location,
       children: [
         WorkOrderFieldRow(
           icon: Icons.location_on_outlined,
           label: context.l10n.workplace,
-          value: _location,
+          value: location,
         ),
         if (coordinates == null)
           FilledButton.icon(
-            onPressed: _saving ? null : _confirmAndRegisterLocation,
+            onPressed: _saving || customer == null || addressIndex == null
+                ? null
+                : () => _confirmAndRegisterLocation(customer),
             icon: _saving
                 ? const SizedBox.square(
                     dimension: 18,
@@ -740,9 +741,16 @@ class _LocationTabState extends ConsumerState<LocationTab> {
     );
   }
 
-  WorkOrderEntity get wo => widget.wo;
+  CustomerEntity? _resolveCustomer() {
+    final customerId = widget.customerId.trim();
+    if (customerId.isEmpty) return null;
+    for (final customer in widget.customers) {
+      if (customer.matchesId(customerId)) return customer;
+    }
+    return null;
+  }
 
-  Future<void> _confirmAndRegisterLocation() async {
+  Future<void> _confirmAndRegisterLocation(CustomerEntity customer) async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -767,15 +775,52 @@ class _LocationTabState extends ConsumerState<LocationTab> {
       final coords = await ref
           .read(locationServiceProvider)
           .getRequiredCoords();
-      final value = '${coords.lat},${coords.lng}';
-      await autosaveWorkOrderField(
-        ref: ref,
-        workOrderId: wo.id,
-        field: 'text_workLocation_id',
-        oldValue: _location,
-        newValue: value,
+      final latitude = coords.lat.toDouble();
+      final longitude = coords.lng.toDouble();
+      final addressIndex = WorkCoordinates.addressIndexFor(
+        customer,
+        widget.workLocation,
       );
-      if (mounted) setState(() => _location = value);
+      if (addressIndex == null) {
+        throw Exception(
+          'No fue posible identificar la dirección del lugar de trabajo.',
+        );
+      }
+      final latitudes = _updatedCoordinateValues(
+        customer.rawData['text_addressLatitude_id'],
+        addressIndex,
+        latitude,
+      );
+      final longitudes = _updatedCoordinateValues(
+        customer.rawData['text_addressLongitude_id'],
+        addressIndex,
+        longitude,
+      );
+      await ref
+          .read(updateDataByIdServiceProvider)
+          .update(
+            tableName: 'customers',
+            id: customer.id,
+            data: {
+              'text_addressLatitude_id': {
+                'oldValue': customer.rawData['text_addressLatitude_id'],
+                'newValue': latitudes,
+              },
+              'text_addressLongitude_id': {
+                'oldValue': customer.rawData['text_addressLongitude_id'],
+                'newValue': longitudes,
+              },
+            },
+          );
+      await ref
+          .read(customersControllerProvider.notifier)
+          .applyCustomerPatch(customer.id, {
+            'text_addressLatitude_id': latitudes,
+            'text_addressLongitude_id': longitudes,
+          });
+      if (mounted) {
+        setState(() {});
+      }
     } catch (error) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -787,6 +832,21 @@ class _LocationTabState extends ConsumerState<LocationTab> {
     } finally {
       if (mounted) setState(() => _saving = false);
     }
+  }
+
+  List<dynamic> _updatedCoordinateValues(
+    dynamic currentValue,
+    int index,
+    double coordinate,
+  ) {
+    final values = currentValue is List
+        ? List<dynamic>.from(currentValue)
+        : <dynamic>[];
+    while (values.length <= index) {
+      values.add(null);
+    }
+    values[index] = coordinate;
+    return values;
   }
 
   Future<void> _openMaps(WorkCoordinates coordinates) async {
@@ -1068,6 +1128,91 @@ class WorkCoordinates {
 
   final double latitude;
   final double longitude;
+
+  String get formatted => '$latitude,$longitude';
+
+  static WorkCoordinates? tryFromCustomer(
+    CustomerEntity customer, [
+    String workLocation = '',
+  ]) {
+    final validCoordinates = _validCustomerCoordinates(customer);
+    if (customer.addressCount <= 1) {
+      return validCoordinates.isEmpty ? null : validCoordinates.first.$2;
+    }
+
+    final embedded = tryParseWorkLocation(workLocation);
+    if (embedded != null) return embedded;
+
+    if (validCoordinates.isEmpty) return null;
+
+    final addressIndex = addressIndexFor(customer, workLocation);
+    if (addressIndex == null) return null;
+    for (final item in validCoordinates) {
+      if (item.$1 == addressIndex) return item.$2;
+    }
+    return null;
+  }
+
+  static int? addressIndexFor(CustomerEntity customer, String workLocation) {
+    if (customer.addressCount <= 1) return 0;
+
+    final embedded = tryParseWorkLocation(workLocation);
+    if (embedded != null) {
+      for (final item in _validCustomerCoordinates(customer)) {
+        if ((item.$2.latitude - embedded.latitude).abs() < 0.000001 &&
+            (item.$2.longitude - embedded.longitude).abs() < 0.000001) {
+          return item.$1;
+        }
+      }
+    }
+
+    final normalizedLocation = workLocation.toLowerCase().trim();
+    if (normalizedLocation.isEmpty) return null;
+    final candidates = <({int index, String value})>[];
+    for (var index = 0; index < customer.addressCount; index++) {
+      if (index < customer.streets.length) {
+        candidates.add((index: index, value: customer.streets[index]));
+      }
+      if (index < customer.addresses.length) {
+        candidates.add((index: index, value: customer.addresses[index]));
+      }
+    }
+    candidates.sort((a, b) => b.value.length.compareTo(a.value.length));
+    for (final candidate in candidates) {
+      final address = candidate.value.toLowerCase().trim();
+      if (address.isNotEmpty && normalizedLocation.contains(address)) {
+        return candidate.index;
+      }
+    }
+    return null;
+  }
+
+  static WorkCoordinates? tryParseWorkLocation(String value) {
+    final match = RegExp(
+      r'Lat\s*:\s*(-?\d+(?:\.\d+)?)\s*\|\s*Lng\s*:\s*(-?\d+(?:\.\d+)?)',
+      caseSensitive: false,
+    ).firstMatch(value);
+    if (match == null) return null;
+    return tryParse('${match.group(1)},${match.group(2)}');
+  }
+
+  static List<(int, WorkCoordinates)> _validCustomerCoordinates(
+    CustomerEntity customer,
+  ) {
+    final result = <(int, WorkCoordinates)>[];
+    final length =
+        customer.addressLatitudes.length < customer.addressLongitudes.length
+        ? customer.addressLatitudes.length
+        : customer.addressLongitudes.length;
+    for (var index = 0; index < length; index++) {
+      final latitude = customer.addressLatitudes[index];
+      final longitude = customer.addressLongitudes[index];
+      if (latitude != null && longitude != null) {
+        result.add((index, WorkCoordinates(latitude, longitude)));
+      }
+    }
+    return result;
+  }
 
   static WorkCoordinates? tryParse(String value) {
     final parts = value.split(',').map((part) => part.trim()).toList();
